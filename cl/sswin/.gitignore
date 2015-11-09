@@ -5,3 +5,8 @@
 DebugD3D/*
 sswin/DebugD3D/*
 sswin/ReleaseD3D/*
+sswin/ReleaseOGL/*
+sswin/DebugOGL/*
+sswin.v12.suo
+Release/vce.lib
+cl/Thumbs.db
