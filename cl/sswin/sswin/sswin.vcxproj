@@ -68,13 +68,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugOGL|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\..\..\;$(ProjectDir)\..\sswin\;$(ProjectDir)\..\..\..\CCDK\vce;$(ProjectDir)\..\..\..\CCDK\backend;$(ProjectDir)\..\..\..\moyai\glew-1.10.0\include;$(ProjectDir)\..\..\..\moyai\glut-3.7.6-bin;$(ProjectDir)\..\..\..\moyai\glfw-2.7.7\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\..\..\..\;$(ProjectDir)\..\sswin\;$(ProjectDir)\..\..\..\vce;$(ProjectDir)\..\..\..\sv;$(ProjectDir)\..\..\..\moyai\glew-1.10.0\include;$(ProjectDir)\..\..\..\moyai\glut-3.7.6-bin;$(ProjectDir)\..\..\..\moyai\glfw-2.7.7\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)\..\..\..\moyai\windeps_compiled\vs2013\;$(ProjectDir)\..\..\..\moyai\glut-3.7.6-bin;$(ProjectDir)\..\..\..\moyai\fmodwin\api\lib;$(SolutionDir)$(Configuration);$(ProjectDir)\..\Debug\;$(ProjectDir)\..\..\..\moyai\demowin\DebugOGL;$(ProjectDir)\..\..\..\CCDK\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugD3D|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\..\..\;$(ProjectDir)\..\sswin\;$(ProjectDir)\..\..\..\..\externals;$(ProjectDir)\..\..\..\..\vce;$(ProjectDir)\..\..\..\..\backend;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\..\..\..\..\externals\moyai\windeps_compiled\vs2013\;$(ProjectDir)\..\..\..\..\externals\moyai\fmodwin\api\lib;$(ProjectDir)\..\..\..\..\externals\moyai\demowin\DebugD3D;$(ProjectDir)\..\..\..\..\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\..\..\..\;$(ProjectDir)\..\sswin\;$(ProjectDir)\..\..\..\vce;$(ProjectDir)\..\..\..\sv;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\..\..\..\..\moyai\windeps_compiled\vs2013\;$(ProjectDir)\..\..\..\..\moyai\fmodwin\api\lib;$(ProjectDir)\..\..\..\moyai\demowin\DebugD3D;$(ProjectDir)\..\..\..\cl\sswin\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseOGL|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -83,8 +83,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)\..\..\..\;$(ProjectDir)\..\sswin\;$(ProjectDir)\..\..\..\..\vce;$(ProjectDir)\..\..\..\..\backend;$(ProjectDir)\..\..\..\..\externals;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\..\..\..\moyai\demowin\ReleaseD3D;$(ProjectDir)\..\..\..\CCDK\Release;$(ProjectDir)\..\..\..\..\Release;$(ProjectDir)\..\..\..\..\externals\moyai\demowin\ReleaseD3D;$(ProjectDir)\..\..\..\..\externals\moyai\windeps_compiled\vs2013\;$(ProjectDir)\..\..\..\..\externals\moyai\fmodwin\api\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\..\..\..\;$(ProjectDir)\..\sswin\;$(ProjectDir)\..\..\..\..\vce;$(ProjectDir)\..\..\..\sv;$(ProjectDir)\..\..\..\vce;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\..\..\..\moyai\demowin\ReleaseD3D;$(ProjectDir)\..\..\..\CCDK\Release;$(ProjectDir)\..\..\..\cl\sswin\Release;$(ProjectDir)\..\..\..\..\moyai\demowin\ReleaseD3D;$(ProjectDir)\..\..\..\..\moyai\windeps_compiled\vs2013\;$(ProjectDir)\..\..\..\..\moyai\fmodwin\api\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugOGL|Win32'">
     <ClCompile>
@@ -199,7 +199,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\backend\ssproto_cli.cpp" />
+    <ClCompile Include="..\..\..\sv\ssproto_cli.cpp" />
     <ClCompile Include="..\..\char.cpp" />
     <ClCompile Include="..\..\effect.cpp" />
     <ClCompile Include="..\..\enemy.cpp" />

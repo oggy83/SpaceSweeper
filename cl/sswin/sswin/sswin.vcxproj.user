@@ -3,10 +3,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugD3D|Win32'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)..\..</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>--debug</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--debug --host=6</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseD3D|Win32'">
-    <LocalDebuggerCommandArguments>--debug --username=kao</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--debug --host=6</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>$(ProjectDir)..\..</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
