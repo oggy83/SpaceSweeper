@@ -1089,7 +1089,7 @@ int ssproto_kvs_append_string_array_recv( conn_t _c, int query_id, const char *k
             if( savereply->type == REDIS_REPLY_ERROR ) {
                 ssproto_kvs_append_string_array_result_send( _c, query_id, SSPROTO_E_KVS_COMMAND, key, field );
             } else {
-                print("saved serialized json: '%s'", serialized.c_str());
+                //                print("saved serialized json: '%s'", serialized.c_str());
                 ssproto_kvs_append_string_array_result_send( _c, query_id, SSPROTO_OK, key, field );
             }
         }
