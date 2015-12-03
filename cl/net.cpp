@@ -41,6 +41,7 @@ char g_project_status_ht_key[] = "project_status_h"; // [project_id]
 
 char g_all_clear_ranking_z_key[] = "all_clear_z"; // Ranking by consumed time to beat a project value:project id
 char g_ms_progress_z_key[] = "ms_progress_z"; // Ranking by project id(!), value:time. Be careful project id is stored in score field.
+char g_competition_id_key[] = "competition_id"; // to store competition id
 
 //
 int g_wait_for_net_result = 0;
@@ -581,7 +582,8 @@ typedef enum {
     QID_SAVE_FILE_ASYNC = 171,
     QID_LOAD_FILE_SYNC = 180,
     QID_LOAD_ALL_CLEAR_LOGS = 190,
-    QID_LOAD_MS_PROGRESS_LOGS = 200,    
+    QID_LOAD_MS_PROGRESS_LOGS = 200,
+    QID_LOAD_SINGLE_INT = 210,
 } QUERYID;
 
 #define ENABLE_DBLOG 0
@@ -3028,6 +3030,31 @@ void dbExecuteUnfriendLog() {
         dbSaveUnfriendLog(g_user_id, &ufl);
     }
 }
+
+int dbLoadSingleInt( const char *key ) {
+    Format fmt( "GET %s", key );
+    ssproto_kvs_command_str_send( g_dbconn, QID_LOAD_SINGLE_INT, fmt.buf );
+    WAITFORREPLY();
+    if( g_net_result_code == SSPROTO_OK ) {
+        if( g_kvs_result_value_type == SSPROTO_KVS_VALUE_NIL ) {
+            print("dbLoadSingleInt: value type NIL, return 0." );
+            return 0;
+        } else { 
+            int ret = atoilen( g_kvs_results[0], g_kvs_results_size[0] );
+            print("dbLoadSingleInt: ret:%d", ret );
+            return ret;
+        }
+    } else {
+        networkFatalError( "database error (dblsint)" );
+        return 0;
+    }
+}
+int dbLoadCurrentCompetitionID() {
+    int comp_id = dbLoadSingleInt( g_competition_id_key );
+    print("dbLoadCurrentCompetitionID: compid:%d", comp_id );
+    return comp_id;
+}
+
 
 ///////////////////
 

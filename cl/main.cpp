@@ -1034,6 +1034,8 @@ void updateGame(void) {
                 exit(1);
             }
 
+            dbLoadCurrentCompetitionID();
+            
             ret = dbLoadPC();
 
             if( g_enable_infinity_items ) {

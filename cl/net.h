@@ -444,4 +444,6 @@ enum {
     PING_CMDTYPE_DATABASE = 1,
 };
 
+int dbLoadCurrentCompetitionID() ;
+
 #endif
