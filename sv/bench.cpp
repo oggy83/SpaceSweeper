@@ -10,10 +10,12 @@ typedef enum {
     BENCHMARKTYPE_NOT_INIT = 0,
     BENCHMARKTYPE_REALTIME = 1,
     BENCHMARKTYPE_DATABASE = 2,
+    BENCHMARKTYPE_STRINGARRAY = 3,
 } BENCHMARKTYPE;
 
 BENCHMARKTYPE g_benchmark_type = BENCHMARKTYPE_NOT_INIT;
 
+#define STRINGARRAY_BENCHMARK_MAXLEN 1000
 
 class Client;
 
@@ -35,6 +37,7 @@ long long g_total_recv_count;
 long long g_total_recv_bytes;
 long long g_total_error_count;
 
+int g_stringarray_concurrent=0;
 
 class Client {
 public:
@@ -113,6 +116,25 @@ void Client::poll( double dt ) {
             g_total_sent_bytes += len;
             g_total_sent_count ++;
             last_put_sent_at = accum_time;
+        }
+    } else if( bmt == BENCHMARKTYPE_STRINGARRAY ) {
+        static int qid=0;
+        if( g_stringarray_concurrent < 10 ) { 
+            if( qid < STRINGARRAY_BENCHMARK_MAXLEN+10 ) { 
+                char v[32];
+                snprintf( v, sizeof(v), "poo:%d", qid);
+                int array_maxlen = STRINGARRAY_BENCHMARK_MAXLEN;
+                int len = ssproto_kvs_append_string_array_send( conn, qid, "_benchmark_strarray", "hoge", v, array_maxlen );
+                if(len<0) {
+                    print("ssproto_kvs_append_string_array_send failed:%d",len);
+                } else {
+                    print("ssproto_kvs_append_string_array_send len:%d qid:%d concurrent:%d", len, qid, g_stringarray_concurrent );
+                }
+                g_total_sent_bytes += len;
+                g_total_sent_count ++;
+                qid++;
+                g_stringarray_concurrent ++;
+            }
         }
     }
     if( last_ping_sent_at < accum_time - 1 ) {
@@ -236,7 +258,7 @@ bool initNetwork() {
     return true;
 }
 void printUsage() {
-    print("Usage:\nssbench (realtime|database) [--host=IPADDR] [--maxcon=NUMBER] [--channel=NUMBER] [--range=DISTANCE] [--filenum=NUMBER] [--filesize=NUMBER]" );
+    print("Usage:\nssbench (realtime|database|stringarray) [--host=IPADDR] [--maxcon=NUMBER] [--channel=NUMBER] [--range=DISTANCE] [--filenum=NUMBER] [--filesize=NUMBER]" );
 }
 
 int main( int argc, char **argv ) {
@@ -246,6 +268,9 @@ int main( int argc, char **argv ) {
             g_portnumber = RTPORT;
         } else if( strcmp( argv[i], "database" ) == 0 ) {
             g_benchmark_type = BENCHMARKTYPE_DATABASE;
+            g_portnumber = DBPORT;
+        } else if( strcmp( argv[i], "stringarray" ) == 0 ) {
+            g_benchmark_type = BENCHMARKTYPE_STRINGARRAY;
             g_portnumber = DBPORT;
         } else if( strncmp( argv[i], "--host=", strlen("--host=") ) == 0 ) {
             char *p = argv[i] + strlen("--host=");
@@ -322,6 +347,24 @@ int main( int argc, char **argv ) {
     return 0;
 }
 
+int ssproto_kvs_append_string_array_result_recv( conn_t _c, int query_id, int retcode, const char *key, const char *field ) {
+    print("ssproto_kvs_append_string_array_result_recv: qid:%d retcode:%d key:'%s' f:'%s' concurrent:%d",
+          query_id, retcode, key, field, g_stringarray_concurrent );
+    if(retcode == SSPROTO_OK) {
+        int len = ssproto_kvs_get_string_array_send( _c, query_id, key, field );
+        print("ssproto_kvs_get_string_array_send: len:%d qid:%d", len, query_id );
+    } else {
+        print("ssproto_kvs_append_string_array_result_recv failed:%d qid:%d", retcode, query_id );
+    }
+    g_stringarray_concurrent --;
+    return 0;
+}
+int ssproto_kvs_get_string_array_result_recv( conn_t _c, int query_id, int retcode, const char *key, const char *field, const char * const *result, int result_len ) {
+    print("ssproto_kvs_get_string_array_result_recv: qid:%d retcode:%d key:'%s' f:'%s' reslen:%d", query_id, retcode, key, field, result_len );
+    assert(retcode==SSPROTO_OK);
+    assert(result_len<=STRINGARRAY_BENCHMARK_MAXLEN);
+    return 0;
+}
 
 
 
@@ -336,8 +379,6 @@ int ssproto_generate_id_32_result_recv( conn_t _c, int query_id, int generated_i
 int ssproto_kvs_command_str_result_recv( conn_t _c, int query_id, int retcode, int valtype, const char * const *result, int result_len ) {return 0;}
 int ssproto_kvs_push_to_list_result_recv( conn_t _c, int query_id, int retcode, const char *key, int updated_num ) {return 0;}
 int ssproto_kvs_get_list_range_result_recv( conn_t _c, int query_id, int retcode, int start_ind, int end_ind, const char *key, const char * const *result, int result_len ) {return 0;}
-int ssproto_kvs_append_string_array_result_recv( conn_t _c, int query_id, int retcode, const char *key, const char *field ) {return 0;}
-int ssproto_kvs_get_string_array_result_recv( conn_t _c, int query_id, int retcode, const char *key, const char *field, const char * const *result, int result_len ) {return 0;}
 int ssproto_kvs_save_bin_result_recv( conn_t _c, int query_id, int retcode, int valtype, const char *key, const char *field ) {return 0;}
 int ssproto_kvs_load_bin_result_recv( conn_t _c, int query_id, int retcode, int has_data, const char *key, const char *field, const char *data, int data_len ) {return 0;}
 int ssproto_counter_get_result_recv( conn_t _c, int counter_category, int counter_id, int result, int curvalue ) {return 0;}
