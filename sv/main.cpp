@@ -39,6 +39,8 @@ bool g_enable_fsync = false;
 char g_redis_addr[1024] = "localhost";
 int g_disk_latency_log_ms = 0; // 0 for disable, milliseconds.
 
+bool g_enable_redis_log = false;
+
 char g_topdir[1024] = "./datadir";
 redisContext *g_redis;
 tcpcontext_t g_dbctx; // For Database server
@@ -395,6 +397,7 @@ void printUsage() {
     print("--redis-addr HOSTNAME : Address of the redis server.  Default is localhost" );
     print("--slowloop=NUMBER : Milliseconds to enable slow network polling loop. Add short sleep inside mainloop. Default is zero" );
     print("--disk_latency_log=NUMBER : Milliseconds to enable disk read/write latency logging" );
+    print("--redis-log : Enable redis access log" );
 }
 
 bool saveAllSharedProjects() ;
@@ -439,6 +442,9 @@ int main( int argc, char **argv ) {
         }
         if( strncmp( argv[i], "--disk_latency_log=", strlen( "--disk_latency_log=") ) == 0 ) {
             g_disk_latency_log_ms = atoi( argv[i] + strlen( "--disk_latency_log=") );
+        }
+        if( strcmp( argv[i], "--redis-log" ) == 0 ) {
+            g_enable_redis_log = true;
         }
     }
     if( g_enable_abort_on_parser_error ) {
@@ -749,22 +755,22 @@ void convertRedisElementsToStringArray( redisReply *reply, char **strary ) {
 
 int ssproto_kvs_command_str_recv( conn_t _c, int query_id, const char *command ) {
     CHECK_DATABASE("kvs_command_str");    
-    //    print("ssproto_kvs_command_str_recv: qid:%d cmd:'%s'", query_id, command );
+    if( g_enable_redis_log ) print("ssproto_kvs_command_str_recv: qid:%d cmd:'%s'", query_id, command );
     prt("R");    
     redisReply *reply = (redisReply*) redisCommand( g_redis, command ); // No security! Use only inside data center servers.
     switch( reply->type) {
     case REDIS_REPLY_STRING:
-        //        print("redis returns string: '%s'", reply->str );
+        if( g_enable_redis_log ) print("redis returns string: '%s'", reply->str );
         ssproto_kvs_command_str_result_send( _c, query_id, SSPROTO_OK, SSPROTO_KVS_VALUE_STRING, & reply->str, 1 );
         break;
     case REDIS_REPLY_ARRAY:
-        //        print("redis returns array with %d elements", reply->elements );
+        if(g_enable_redis_log) print("redis returns array with %d elements", reply->elements );
         char *strary[SSPROTO_KVS_ARRAYLEN_MAX];
         convertRedisElementsToStringArray( reply, strary );
         ssproto_kvs_command_str_result_send( _c, query_id, SSPROTO_OK, SSPROTO_KVS_VALUE_ARRAY, strary, reply->elements );
         break;
     case REDIS_REPLY_INTEGER:
-        //        print("redis returns integer: %d", reply->integer );
+        if(g_enable_redis_log) print("redis returns integer: %d", reply->integer );
         // Have to convert to string, because now gen can't manage multiple prototypes of same function.
         {
             char s[128];
@@ -774,15 +780,15 @@ int ssproto_kvs_command_str_recv( conn_t _c, int query_id, const char *command )
         }
         break;
     case REDIS_REPLY_NIL:
-        //        print("redis returns nil" );
+        if(g_enable_redis_log) print("redis returns nil" );
         ssproto_kvs_command_str_result_send( _c, query_id, SSPROTO_OK, SSPROTO_KVS_VALUE_NIL, NULL, 0 );
         break;
     case REDIS_REPLY_ERROR:
-        //        print("redis returns error:'%s'", reply->str );
+        if(g_enable_redis_log) print("redis returns error:'%s'", reply->str );
         ssproto_kvs_command_str_result_send( _c, query_id, SSPROTO_E_KVS_COMMAND, SSPROTO_KVS_VALUE_ERROR, & reply->str, 1 );
         break;
     case REDIS_REPLY_STATUS:
-        //        print("redis returns status:'%s'", reply->str );
+        if(g_enable_redis_log) print("redis returns status:'%s'", reply->str );
         ssproto_kvs_command_str_result_send( _c, query_id, SSPROTO_E_KVS_COMMAND, SSPROTO_KVS_VALUE_STRING, & reply->str, 1 );
         break;        
     default:
@@ -799,14 +805,15 @@ int ssproto_kvs_command_str_recv( conn_t _c, int query_id, const char *command )
     return 0;
 }
 int ssproto_kvs_command_str_oneway_recv( conn_t _c, const char *command ) {
-    CHECK_DATABASE( "kvs_command_str_oneway");    
+    CHECK_DATABASE( "kvs_command_str_oneway");
+    if(g_enable_redis_log) print("ssproto_kvs_command_str_oneway_recv: command:'%s'", command );    
     redisCommand( g_redis, command ); // No security! Use only inside data center servers.
     return 0;
 }
 
 int ssproto_kvs_save_bin_recv( conn_t _c, int query_id, const char *key, const char *field, const char *data, int data_len ) {
     CHECK_DATABASE( "kvs_save_bin");    
-    //    print( "ssproto_kvs_save_bin_recv: qid:%d key:'%s' fied:'%s' datalen:%d", query_id, key, field, data_len );
+    if(g_enable_redis_log) print( "ssproto_kvs_save_bin_recv: qid:%d key:'%s' fied:'%s' datalen:%d", query_id, key, field, data_len );
     prt("R");
     redisReply *reply;
     reply = (redisReply*)redisCommand( g_redis, "HSET %s %s %b", key, field, data, (size_t)data_len );
@@ -815,7 +822,7 @@ int ssproto_kvs_save_bin_recv( conn_t _c, int query_id, const char *key, const c
         print("redis error on '%s' emsg:'%s'", key, reply->str );
         retcode = SSPROTO_E_KVS_COMMAND;
     } else {
-        //        print("redis set ok on '%s'", key );
+        if(g_enable_redis_log) print("redis set ok on '%s'", key );
     }
     ssproto_kvs_save_bin_result_send( _c, query_id, retcode, reply->type, key, field );
     freeReplyObject(reply);    
@@ -823,7 +830,7 @@ int ssproto_kvs_save_bin_recv( conn_t _c, int query_id, const char *key, const c
 }
 int ssproto_kvs_load_bin_recv( conn_t _c, int query_id, const char *key, const char *field ) {
     CHECK_DATABASE( "kvs_load_bin");    
-    //    print( "ssproto_kvs_load_bin_recv: qid:%d key:'%s' field:'%s'",query_id, key, field );
+    if(g_enable_redis_log) print( "ssproto_kvs_load_bin_recv: qid:%d key:'%s' field:'%s'",query_id, key, field );
     
     redisReply *reply;
     reply = (redisReply*) redisCommand( g_redis, "HGET %s %s", key, field );
@@ -837,7 +844,7 @@ int ssproto_kvs_load_bin_recv( conn_t _c, int query_id, const char *key, const c
         ssproto_kvs_load_bin_result_send( _c, query_id, SSPROTO_OK, 0, key, field, NULL,0 );
     } else {
         // Data found!
-        //        print("redis get ok on '%s':'%s' reply type:%d", key, field, reply->type );
+        if(g_enable_redis_log) print("redis get ok on '%s':'%s' reply type:%d", key, field, reply->type );
         prt("R");
         ssproto_kvs_load_bin_result_send( _c, query_id, SSPROTO_OK, 1, key, field, reply->str, reply->len );
     }
@@ -1003,7 +1010,7 @@ int ssproto_count_presence_recv( conn_t _c, int project_id ){
 // Redis list. (Mainly for logging)
 int ssproto_kvs_push_to_list_recv( conn_t _c, int query_id, const char *key,  const char *s, int trim ) {
     CHECK_DATABASE( "kvs_push_to_list");    
-    //    print("ssproto_kvs_push_to_list_recv: k:'%s' s:'%s', trim:%d", key, s, trim );
+    if(g_enable_redis_log) print("ssproto_kvs_push_to_list_recv: k:'%s' s:'%s', trim:%d", key, s, trim );
     prt("R");
     redisReply *reply  = (redisReply*) redisCommand( g_redis, "LPUSH %s %s", key, s );
 
@@ -1024,7 +1031,7 @@ int ssproto_kvs_push_to_list_recv( conn_t _c, int query_id, const char *key,  co
 }
 int ssproto_kvs_get_list_range_recv( conn_t _c, int query_id, const char *key, int start_ind, int end_ind ) {
     CHECK_DATABASE("kvs_get_list_range");    
-    //    print("ssproto_kvs_get_list_range_recv: '%s' %d-%d", key,  start_ind, end_ind );
+    if(g_enable_redis_log) print("ssproto_kvs_get_list_range_recv: '%s' %d-%d", key,  start_ind, end_ind );
     prt("R");
     redisReply *reply = (redisReply*) redisCommand( g_redis, "LRANGE %s %d %d", key, start_ind, end_ind );
     switch(reply->type) {
@@ -1048,7 +1055,7 @@ int ssproto_kvs_get_list_range_recv( conn_t _c, int query_id, const char *key, i
 // [ "hoge", "fuga", "piyo" ]
 int ssproto_kvs_append_string_array_recv( conn_t _c, int query_id, const char *key, const char *field, const char *s, int trim ) {
     CHECK_DATABASE( "kvs_append_sring_array");    
-    //    print("ssproto_kvs_append_string_array_recv '%s':'%s' s:'%s' trim:%d", key, field,s, trim );
+    if(g_enable_redis_log) print("ssproto_kvs_append_string_array_recv '%s':'%s' s:'%s' trim:%d", key, field,s, trim );
     prt("R");
     redisReply *reply = (redisReply*) redisCommand( g_redis, "HGET %s %s", key, field );
     switch(reply->type) {
@@ -1089,7 +1096,7 @@ int ssproto_kvs_append_string_array_recv( conn_t _c, int query_id, const char *k
             if( savereply->type == REDIS_REPLY_ERROR ) {
                 ssproto_kvs_append_string_array_result_send( _c, query_id, SSPROTO_E_KVS_COMMAND, key, field );
             } else {
-                //                print("saved serialized json: '%s'", serialized.c_str());
+                if(g_enable_redis_log) print("saved serialized json: '%s'", serialized.c_str());
                 ssproto_kvs_append_string_array_result_send( _c, query_id, SSPROTO_OK, key, field );
             }
         }
@@ -1104,7 +1111,7 @@ int ssproto_kvs_append_string_array_recv( conn_t _c, int query_id, const char *k
 }
 int ssproto_kvs_get_string_array_recv( conn_t _c, int query_id, const char *key, const char *field ) {
     CHECK_DATABASE( "kvs_get_string_array");    
-    //    print("ssproto_kvs_get_string_array_recv: '%s':'%s'", key, field );
+    if(g_enable_redis_log) print("ssproto_kvs_get_string_array_recv: '%s':'%s'", key, field );
     prt("R");
     redisReply *reply = (redisReply*) redisCommand( g_redis, "HGET %s %s", key, field );
     switch(reply->type) {
@@ -1131,7 +1138,7 @@ int ssproto_kvs_get_string_array_recv( conn_t _c, int query_id, const char *key,
                 strncpy( work[i], s.c_str(), sizeof(work[i]) );
                 workptr[i] = work[i];
             }
-            //            print("sending ssproto_kvs_get_string_array_result_send: outn:%d", outn );
+            if(g_enable_redis_log) print("sending ssproto_kvs_get_string_array_result_send: outn:%d", outn );
             ssproto_kvs_get_string_array_result_send( _c, query_id, SSPROTO_OK, key, field, workptr, outn );
         }
         break;
