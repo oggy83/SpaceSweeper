@@ -445,5 +445,6 @@ enum {
 };
 
 int dbLoadCurrentCompetitionID() ;
+bool dbCheckCompetitionRunning() ;
 
 #endif

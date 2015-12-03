@@ -195,7 +195,8 @@ public:
     void setNumColor( Color c ) {
         num_grid->fillColor(c);
     }
-    
+    void setStringColor( Color c ) { setNumColor(c); }
+    void setStringScl(float s) { num_prop->setScl(s);}
 };
 
 
@@ -465,6 +466,7 @@ public:
     PictLabel *mine;
     PictLabel *shared;
     PictLabel *pub;
+    PictLabel *competition;
     CharGridTextBox *back_tb;
 
     int cursor_id_at;
@@ -776,6 +778,30 @@ public:
     void clear();
     void show() { toggle(true); }
     void hide() { toggle(false); }
+};
+
+
+class CompetitionStatusWindow : public Window {
+public:
+    CharGridTextBox *title_tb;
+    static const int TEAM_NUM = 2;
+    PictLabel *team_icons[TEAM_NUM];
+    PictLabel *membernums[TEAM_NUM];
+    static const int NEWMEMBER_LOG_NUM = 5;
+    PictLabel *newmembers[TEAM_NUM][NEWMEMBER_LOG_NUM];
+    CharGridTextBox *cancel_tb;
+    PropGroup *group;
+
+    int cursor_id_at;
+    BlinkCursor *cursor;
+    CompetitionStatusWindow();
+    void hide() { toggle(false); }
+    void show() { toggle(true); }
+    void toggle( bool visibility );
+    void selectAtCursor();
+    void moveCursor( DIR dir );
+    void update();
+    
 };
 
 /////////////

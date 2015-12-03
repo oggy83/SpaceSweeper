@@ -2287,7 +2287,7 @@ bool CharMakeWindow::windowPoll(double dt) {
 ProjectTypeWindow::ProjectTypeWindow() : Window(PREPARATION_GRID_WIDTH, PREPARATION_GRID_HEIGHT, B_ATLAS_WINDOW_FRAME_BASE, WINDOW_ALPHA ) {
     g_hud_layer->insertProp(this);
     setLoc(PREPARATION_WINDOW_LOC);
-    group = new PropGroup( 4 );
+    group = new PropGroup( 5 );
 
     title_tb = new CharGridTextBox(30);
     title_tb->setString( WHITE, "SELECT PROJECT TYPE:" );
@@ -2315,9 +2315,15 @@ ProjectTypeWindow::ProjectTypeWindow() : Window(PREPARATION_GRID_WIDTH, PREPARAT
     g_hud_layer->insertProp(pub);
     group->reg(pub);
 
+    competition = new PictLabel( base + Vec2(0,-300), B_ATLAS_RED_CIRCLE );
+    competition->setString( "  COMPETITION" );
+    competition->setScl(48);
+    g_hud_layer->insertProp(competition);
+    group->reg(competition);
+
     back_tb = new CharGridTextBox(4);
     back_tb->setString( WHITE, "BACK" );
-    back_tb->setLoc( pub->loc + Vec2(48,-96) );
+    back_tb->setLoc( competition->loc + Vec2(48,-96) );
     g_hud_layer->insertProp(back_tb);
     group->reg(back_tb);
 
@@ -2333,13 +2339,22 @@ void ProjectTypeWindow::toggle(bool vis) {
     mine->setVisible(vis);
     shared->setVisible(vis);
     pub->setVisible(vis);
+    competition->setVisible(vis);
     back_tb->setVisible(vis);
 
     cursor->setVisible(vis);
+    if(vis) update();
 }
 void ProjectTypeWindow::update() {
     Prop2D *curp = group->find( cursor_id_at );
     cursor->loc = curp->loc + Vec2(-48,0);
+
+    if( dbCheckCompetitionRunning() ) {
+        competition->setStringColor(WHITE);
+    } else {
+        competition->setStringColor(RED);
+    }
+
 }
 void ProjectTypeWindow::moveCursor( DIR dir ) {
     Prop2D *from_p = group->find(cursor_id_at);
@@ -2349,20 +2364,33 @@ void ProjectTypeWindow::moveCursor( DIR dir ) {
     update();
 }
 void ProjectTypeWindow::selectAtCursor() {
-    g_craft_sound->play();
-    hide();
-
     Prop2D *p = group->find(cursor_id_at);
     if( p == pub ) {
+        hide();
+        g_craft_sound->play();
         g_projlistwin->list_type = PJLT_PUBLIC;
         g_projlistwin->show();
     } else if( p == shared ) {
+        hide();
+        g_craft_sound->play();        
         g_projlistwin->list_type = PJLT_SHARED;
         g_projlistwin->show();
     } else if( p == mine ){
+        hide();
+        g_craft_sound->play();        
         g_projlistwin->list_type = PJLT_PRIVATE;
         g_projlistwin->show();
+    } else if( p == competition ) {
+        if( dbCheckCompetitionRunning() ) {
+            hide();
+            g_craft_sound->play();            
+            g_compstatwin->show();
+        } else {
+            g_cant_sound->play();
+        }
     } else if( p == back_tb ) {
+        hide();
+        g_craft_sound->play();                    
         g_titlewin->show();
         g_runstate = RS_MAIN_MENU;
     }
@@ -4797,4 +4825,88 @@ void SeedInputWindow::selectAtCursor() {
     }
     
     
+}
+///////////////////////////
+
+CompetitionStatusWindow::CompetitionStatusWindow() : Window(PREPARATION_GRID_WIDTH, PREPARATION_GRID_HEIGHT, B_ATLAS_WINDOW_FRAME_BASE, WINDOW_ALPHA ) {
+    g_hud_layer->insertProp(this);
+    setLoc(PREPARATION_WINDOW_LOC);
+    group = new PropGroup(3);
+
+    title_tb = new CharGridTextBox(30);
+    title_tb->setString( WHITE, "COMPETITION STATUS" );
+    title_tb->setLoc(getTitleLoc());
+    g_hud_layer->insertProp(title_tb);
+
+    assert(TEAM_NUM==2);
+
+    float leftmgn = 150, topmgn = -150;
+    team_icons[0] = new PictLabel( title_tb->loc + Vec2(leftmgn,topmgn), B_ATLAS_RED_TEAM_ICON );
+    team_icons[0]->setString("811");
+    team_icons[0]->setStringColor(RED);
+    team_icons[0]->setStringScl(32);
+    team_icons[0]->setScl(64);
+    g_hud_layer->insertProp(team_icons[0]);
+    group->reg(team_icons[0]);
+    
+    float teammgn = 450;
+    team_icons[1] = new PictLabel( title_tb->loc + Vec2(leftmgn+teammgn,topmgn), B_ATLAS_BLUE_TEAM_ICON );
+    team_icons[1]->setString("780");
+    team_icons[1]->setStringColor(BLUE);
+    team_icons[1]->setStringScl(32);
+    team_icons[1]->setScl(64);    
+    g_hud_layer->insertProp(team_icons[1]);
+    group->reg(team_icons[1]);
+
+    cancel_tb = new CharGridTextBox(8);
+    g_hud_layer->insertProp(cancel_tb);
+    cancel_tb->setLoc( title_tb->loc + Vec2(700,-550) );
+    cancel_tb->setString( WHITE, "CANCEL" );
+    group->reg(cancel_tb);
+    
+    cursor = new BlinkCursor( DIR_RIGHT);
+    g_hud_layer->insertProp(cursor);
+
+    cursor_id_at = team_icons[0]->id;
+    
+    /*
+    PictLabel *membernums[TEAM_NUM];
+    static const int NEWMEMBER_LOG_NUM = 5;
+    PictLabel *newmembers[TEAM_NUM][NEWMEMBER_LOG_NUM];
+    CharGridTextBox *cancel_tb;
+    PropGroup *group;
+    
+    BlinkCursor *cursor;
+    CompetitionStatusWindow();
+
+    */
+
+    update();
+}
+void CompetitionStatusWindow::toggle(bool vis) {
+    setVisible(vis);
+    title_tb->setVisible(vis);
+    for(int i=0;i<TEAM_NUM;i++) {
+        team_icons[i]->setVisible(vis);
+    }
+    cancel_tb->setVisible(vis);
+    cursor->setVisible(vis);
+}
+void CompetitionStatusWindow::update() {
+    print("CompetitionStatusWindow::update: curid:%d", cursor_id_at );
+    Prop2D *curp = group->find( cursor_id_at );
+    if(curp) cursor->loc = curp->loc + Vec2(-48,0);
+}
+void CompetitionStatusWindow::moveCursor( DIR dir ) {
+    g_cursormove_sound->play();
+    Prop2D *nextp = group->getNext( cursor_id_at, dir );
+    cursor_id_at = nextp->id;
+    update();
+}
+void CompetitionStatusWindow::selectAtCursor() {
+    Prop2D *tgtp = group->find( cursor_id_at );
+    if( tgtp == cancel_tb ) {
+        hide();
+        g_projtypewin->show();
+    }
 }

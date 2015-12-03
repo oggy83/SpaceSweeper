@@ -136,6 +136,7 @@ extern RUNSTATE g_runstate;
 
 #define WHITE Color(1,1,1,1)
 #define RED Color(1,0,0,1)
+#define BLUE Color(0,0,1,1)
 
 extern WorldMap *g_wm;
 
@@ -158,6 +159,8 @@ class CreditWindow;
 extern CreditWindow *g_creditwin;
 class SeedInputWindow;
 extern SeedInputWindow *g_seedwin;
+class CompetitionStatusWindow;
+extern CompetitionStatusWindow *g_compstatwin;
 
 extern int g_current_project_id;
 

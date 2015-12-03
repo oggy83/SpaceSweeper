@@ -188,7 +188,7 @@ FriendWindow *g_friendwin;
 DebugWindow *g_debugwin;
 CreditWindow *g_creditwin;
 SeedInputWindow *g_seedwin;
-
+CompetitionStatusWindow *g_compstatwin;
 
 MilestoneDisplay *g_milestone_display;
 
@@ -482,7 +482,7 @@ void updateToSim() {
 
 // ゲーム外のウインドウ
 bool isOutgameWindowVisible() {
-    return g_charmakewin->visible || g_projtypewin->visible || g_projlistwin->visible || g_charnamewin->visible || g_projinfowin->visible || g_titlewin->visible || g_ranktypewin->visible || g_rankwin->visible || g_friendwin->visible || g_creditwin->visible || g_seedwin->visible;
+    return g_charmakewin->visible || g_projtypewin->visible || g_projlistwin->visible || g_charnamewin->visible || g_projinfowin->visible || g_titlewin->visible || g_ranktypewin->visible || g_rankwin->visible || g_friendwin->visible || g_creditwin->visible || g_seedwin->visible || g_compstatwin->visible;
 }
 // ゲーム中のウインドウ
 bool isIngameWindowVisible(){
@@ -516,6 +516,7 @@ void toggleWindow( const char *name ) {
         g_spmenuwin->hide();
         g_followwin->hide();
         g_seedwin->hide();
+        g_compstatwin->hide();
         return;
     }
     
@@ -551,6 +552,8 @@ void toggleWindow( const char *name ) {
         g_charnamewin->toggle( !g_charnamewin->visible );
     } else if( strcmp( name, "seed" ) == 0 ) {
         g_seedwin->toggle( !g_seedwin->visible );
+    } else if( strcmp( name, "compstat" ) == 0 ) {
+        g_compstatwin->toggle( !g_compstatwin->visible );
     } else if( strcmp( name, "projtype" ) == 0 ) {
         g_projtypewin->toggle( ! g_projtypewin->visible );
     } else if( strcmp( name, "projlist" ) == 0 ) {
@@ -592,6 +595,8 @@ void onDirectionKey( DIR d ) {
         g_charnamewin->moveCursor(d);
     } else if( g_seedwin->visible ) {
         g_seedwin->moveCursor(d);
+    } else if( g_compstatwin->visible ) {
+        g_compstatwin->moveCursor(d);
     } else if( g_projinfowin->visible ) {
         g_projinfowin->moveCursor(d);
     } else if( g_spmenuwin->visible ) {
@@ -632,6 +637,8 @@ void onEnterKey() {
         g_charnamewin->selectAtCursor();
     } else if( g_seedwin->visible ) {
         g_seedwin->selectAtCursor();
+    } else if( g_compstatwin->visible ) {
+        g_compstatwin->selectAtCursor();
     } else if( g_projinfowin->visible ) {
         g_projinfowin->selectAtCursor();
     } else if( g_spmenuwin->visible ) {
@@ -1921,6 +1928,9 @@ int moaiMain( int argc, char **argv ){
 
     g_seedwin = new SeedInputWindow();
     g_seedwin->hide();
+
+    g_compstatwin = new CompetitionStatusWindow();
+    g_compstatwin->hide();
 
     g_projinfowin = new ProjectInfoWindow();
     g_projinfowin->hide();

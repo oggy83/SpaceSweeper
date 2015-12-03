@@ -147,6 +147,10 @@
 #define B_ATLAS_LIGHTGREEN_CIRCLE (27*AU+1)
 #define B_ATLAS_ORANGE_CIRCLE (27*AU+2)
 #define B_ATLAS_RED_CIRCLE (27*AU+3)
+
+#define B_ATLAS_RED_TEAM_ICON (27*AU+5)
+#define B_ATLAS_BLUE_TEAM_ICON (27*AU+6)
+
     
 // Structures on the ground 
 #define B_ATLAS_DEROTA (34*AU+11)

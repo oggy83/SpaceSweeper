@@ -3054,6 +3054,11 @@ int dbLoadCurrentCompetitionID() {
     print("dbLoadCurrentCompetitionID: compid:%d", comp_id );
     return comp_id;
 }
+bool dbCheckCompetitionRunning() {
+    if( isDBNetworkActive() == false ) return false;
+    int compid = dbLoadCurrentCompetitionID();
+    return ( compid > 0 );
+}
 
 
 ///////////////////
