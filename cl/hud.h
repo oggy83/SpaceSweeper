@@ -481,12 +481,6 @@ public:
 };
 
 typedef enum {
-    PJT_MINE = 1,
-    PJT_SHARED = 2,
-    PJT_PUBLIC = 3,
-} PROJECTTYPE;
-
-typedef enum {
     PJLT_INVAL = 0,
     PJLT_PRIVATE = 1,
     PJLT_SHARED = 2,
