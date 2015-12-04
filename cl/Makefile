@@ -67,6 +67,7 @@ clearpj:
 	find $(BACKEND)/datadir | grep _image_ | xargs rm -f
 	find $(BACKEND)/datadir | grep _counter_ | xargs rm -f
 	find $(BACKEND)/datadir | grep _sharedprojects | xargs rm -f
+	find $(BACKEND)/datadir | grep _compe | xargs rm -f
 
 clearcontact:
 	find $(BACKEND)/datadir | grep followers | xargs rm -f

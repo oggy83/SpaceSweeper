@@ -2142,6 +2142,27 @@ public:
             entries[i].dump();
         }
     }
+    bool load() {
+        Format fmt( "_competition_stat_%d", competition_id );
+        char fullpath[256];
+        makeFullPath( fullpath, sizeof(fullpath), fmt.buf );
+        size_t rsz = sizeof(*this);
+        bool ret = readFileWithLog( fullpath, (char*)this, &rsz, 0 );
+        if(ret) {
+            print( "file (%s) exists with the size(%d)! read it in mem", fullpath, rsz );
+        } else {
+            print( "file (%s) doesn't exist", fullpath);
+        }        
+        return ret;
+    }
+    bool save() {
+        Format fmt( "_competition_stat_%d", competition_id );
+        char fullpath[256];
+        makeFullPath( fullpath, sizeof(fullpath), fmt.buf );
+        bool ret = writeFileWithLog( fullpath, (char*)this, sizeof(*this), 0 );
+        return ret;
+    }
+    
 };
 
 CompeStat *g_compestats[8];
@@ -2173,17 +2194,7 @@ CompeStat *ensureCompeStat( int compe_id ) {
         print("allocCompeStat failed, compestat full! for:%d", compe_id );
         return NULL;
     }
-    
-    Format fmt( "_competition_stat_%d", compe_id );
-    char fullpath[256];
-    makeFullPath( fullpath, sizeof(fullpath), fmt.buf );
-    size_t rsz = sizeof(*cs);
-    bool ret = readFileWithLog( fullpath, (char*)cs, &rsz, 0 );
-    if(ret) {
-        print( "file (%s) exists with the size(%d)! read it in mem", fullpath, rsz );
-    } else {
-        print( "file (%s) doesn't exist", fullpath);
-    }
+    cs->load();
     return cs;
 }
 
@@ -2194,6 +2205,8 @@ int ssproto_append_competition_log_recv( conn_t _c, int competition_id, int team
         time_t t = time(NULL);
         CompeLogEntry ent(t,team_id, user_id, project_id, log_type );
         cs->appendEntry(&ent);
+        bool ret = cs->save();
+        print("saving cs: result:%d",ret);
     }
     return 0;
 }
