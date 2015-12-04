@@ -4971,14 +4971,18 @@ void CompetitionStatusWindow::update() {
     }
 }
 void CompetitionStatusWindow::updateTimelineImage() {
-    for(int y=0;y<TIMELINE_IMG_HEIGHT;y++) {
-        for(int x=0;x<TIMELINE_IMG_WIDTH;x++) {
-            Color c = RED;
-            if(y==x) c = WHITE;
-            timeline_img->setPixel(x,y,c);
+    timeline_img->fill( Color(0.2,0.2,0.2,1) );
+    if( isDBNetworkActive() ) {
+        int compid = dbLoadCurrentCompetitionID();
+        if(compid>0) {
+            int l = ssproto_get_competition_stats_timeline_send( g_dbconn, compid, g_pc->team_id, TEAM_LOG_TYPE_GOT_MILESTONE,
+                                                                 CompetitionStatusWindow::TIMELINE_IMG_WIDTH,
+                                                                 1449208231, 1449208231+3600*1 );
+            print("ssproto_get_competition_stats_timeline_send: %d", l );
         }
+        // receiver function will actually update the texture
     }
-    timeline_tex->setImage(timeline_img);
+
 }
 void CompetitionStatusWindow::moveCursor( DIR dir ) {
     g_cursormove_sound->play();

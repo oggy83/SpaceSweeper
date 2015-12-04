@@ -777,10 +777,21 @@ void GLFWCALL keyCallback( int key, int action ) {
         break;
     case 'U':
         if(g_enable_debug_menu){
+            /*
             Cell *c = g_fld->get( g_pc->loc + Vec2(PPC*3,0) );
             if(c) {
                 c->bt = BT_ENEMY_FRAME;
                 g_fld->notifyChanged(c);
+                }
+            */
+            if( dbCheckCompetitionRunning() ) {
+                int compid = dbLoadCurrentCompetitionID();
+                int tid = range(0,1)< 0.5 ? TEAMID_BLUE : TEAMID_RED;
+                int l = ssproto_get_competition_stats_timeline_send( g_dbconn, compid, tid, TEAM_LOG_TYPE_GOT_MILESTONE,
+                                                                     CompetitionStatusWindow::TIMELINE_IMG_WIDTH,
+                                                                     1449208231, 1449208231+3600*1 );
+                print("ssproto_get_competition_stats_timeline_send: %d", l );
+                                                                     
             }
         }        
         break;

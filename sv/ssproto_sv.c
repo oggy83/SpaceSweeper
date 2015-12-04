@@ -1041,15 +1041,17 @@ int ssproto_sv_pcallback( conn_t _c, char *_data, int _len)
     _ret = ssproto_append_competition_log_recv( _c, competition_id,team_id,user_id,project_id,log_type);
     break;
   }
-  case  SSPROTO_C2S_GET_COMPETITION_STATS_TIMELINE :/* record length : 18 */
+  case  SSPROTO_C2S_GET_COMPETITION_STATS_TIMELINE :/* record length : 26 */
   {
     int competition_id;
     int team_id;
     int log_type;
     int tl_num;
+    unsigned int start_at;
+    unsigned int end_at;
 
     /* protocol length check */
-    if(18<_len){
+    if(26<_len){
       int _eret=ssproto_toolong_recv_warning(_c,172,_len);
 #ifdef GEN_DEBUG_LEN_PRINT
       vce_errout("invalid length : recv%dbytes ssproto_get_competition_stats_timeline_recv\n",_len);
@@ -1062,16 +1064,18 @@ int ssproto_sv_pcallback( conn_t _c, char *_data, int _len)
     _POP_I4(team_id);
     _POP_I4(log_type);
     _POP_I4(tl_num);
+    _POP_I4(start_at);
+    _POP_I4(end_at);
 
     ssproto_get_competition_stats_timeline_recv_counter += 1;
 #ifdef GEN_DEBUG_PRINT
     if(ssproto_get_competition_stats_timeline_recv_debugout)
     {
       char _addr[256];
-      vce_errout( "ssproto_get_competition_stats_timeline_recv( [%s], competition_id=%d, team_id=%d, log_type=%d, tl_num=%d )\n", vce_conn_get_remote_addr_string( _c, _addr, sizeof(_addr) ) ,competition_id,team_id,log_type,tl_num );
+      vce_errout( "ssproto_get_competition_stats_timeline_recv( [%s], competition_id=%d, team_id=%d, log_type=%d, tl_num=%d, start_at=%d, end_at=%d )\n", vce_conn_get_remote_addr_string( _c, _addr, sizeof(_addr) ) ,competition_id,team_id,log_type,tl_num,start_at,end_at );
     }
 #endif
-    _ret = ssproto_get_competition_stats_timeline_recv( _c, competition_id,team_id,log_type,tl_num);
+    _ret = ssproto_get_competition_stats_timeline_recv( _c, competition_id,team_id,log_type,tl_num,start_at,end_at);
     break;
   }
   case  SSPROTO_C2S_SHARE_PROJECT :/* record length : 527 */
@@ -2505,17 +2509,16 @@ int ssproto_counter_get_result_send( conn_t _c, int counter_category, int counte
 #endif
 }
 /****/
-int ssproto_get_competition_stats_timeline_result_send( conn_t _c, int competition_id, int team_id, int log_type, int tl_num, const int *tl_data, int tl_data_len )
+int ssproto_get_competition_stats_timeline_result_send( conn_t _c, int competition_id, int team_id, int log_type, const int *tl_data, int tl_data_len )
 {
   /* Make bin_info array */
-  char _work[4119];
+  char _work[4115];
   int _ofs = 0;
   ssproto_get_competition_stats_timeline_result_send_counter += 1;
   _PUSH_I2( SSPROTO_S2C_GET_COMPETITION_STATS_TIMELINE_RESULT, sizeof( _work));
   _PUSH_I4(competition_id,sizeof(_work));
   _PUSH_I4(team_id,sizeof(_work));
   _PUSH_I4(log_type,sizeof(_work));
-  _PUSH_I4(tl_num,sizeof(_work));
   _PUSH_IA4(tl_data,tl_data_len,1024,sizeof(_work));
 
 #ifdef GEN_DEBUG_PRINT
@@ -2523,7 +2526,7 @@ int ssproto_get_competition_stats_timeline_result_send( conn_t _c, int competiti
   {
     char _addr[256];
     int _retsend;
-    vce_errout( "ssproto_get_competition_stats_timeline_result_send( [%s], competition_id=%d, team_id=%d, log_type=%d, tl_num=%d, tl_data[%d] )\n" , vce_conn_get_remote_addr_string( _c, _addr, sizeof(_addr) ) , competition_id, team_id, log_type, tl_num, tl_data_len );
+    vce_errout( "ssproto_get_competition_stats_timeline_result_send( [%s], competition_id=%d, team_id=%d, log_type=%d, tl_data[%d] )\n" , vce_conn_get_remote_addr_string( _c, _addr, sizeof(_addr) ) , competition_id, team_id, log_type, tl_data_len );
     _retsend=ssproto_sv_sender( _c, _work, _ofs);
     if(_retsend<0){
       vce_errout("protocol error : ssproto_get_competition_stats_timeline_result_send code : %d\n",_retsend);
@@ -3874,7 +3877,7 @@ void ssproto_get_channel_member_count_result_send_debugprint(int on_off)
 #endif
 unsigned int ssproto_sv_get_version( unsigned int *subv )
 {
-  if(subv) *subv = 559663586;
+  if(subv) *subv = 783561207;
   return (unsigned int)10003;
 }
 conn_t ssproto_sv_get_current_conn( void )

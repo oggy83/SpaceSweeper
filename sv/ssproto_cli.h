@@ -42,6 +42,10 @@ extern "C" {
 #define SSPROTO_E_PROJECT_NOT_SHARED -46
 #undef SSPROTO_E_CANT_EXTEND_LOCK
 #define SSPROTO_E_CANT_EXTEND_LOCK -47
+#undef SSPROTO_E_DATA_NOT_FOUND
+#define SSPROTO_E_DATA_NOT_FOUND -48
+#undef SSPROTO_E_UNKNOWN
+#define SSPROTO_E_UNKNOWN -99
 #undef SSPROTO_FILE_PATH_MAX
 #define SSPROTO_FILE_PATH_MAX 64
 #undef SSPROTO_FILE_SIZE_MAX
@@ -435,7 +439,7 @@ int ssproto_kvs_load_bin_send( conn_t _c, int query_id, const char *key, const c
 int ssproto_counter_add_send( conn_t _c, int counter_category, int counter_id, int addvalue );
 int ssproto_counter_get_send( conn_t _c, int counter_category, int counter_id );
 int ssproto_append_competition_log_send( conn_t _c, int competition_id, int team_id, int user_id, int project_id, int log_type );
-int ssproto_get_competition_stats_timeline_send( conn_t _c, int competition_id, int team_id, int log_type, int tl_num );
+int ssproto_get_competition_stats_timeline_send( conn_t _c, int competition_id, int team_id, int log_type, int tl_num, unsigned int start_at, unsigned int end_at );
 int ssproto_share_project_send( conn_t _c, int user_id, int project_id, const int *with, int with_len );
 int ssproto_publish_project_send( conn_t _c, int user_id, int project_id );
 int ssproto_update_project_activity_send( conn_t _c, int project_id );
@@ -486,7 +490,7 @@ int ssproto_kvs_get_string_array_result_recv( conn_t _c, int query_id, int retco
 int ssproto_kvs_save_bin_result_recv( conn_t _c, int query_id, int retcode, int valtype, const char *key, const char *field );
 int ssproto_kvs_load_bin_result_recv( conn_t _c, int query_id, int retcode, int has_data, const char *key, const char *field, const char *data, int data_len );
 int ssproto_counter_get_result_recv( conn_t _c, int counter_category, int counter_id, int result, int curvalue );
-int ssproto_get_competition_stats_timeline_result_recv( conn_t _c, int competition_id, int team_id, int log_type, int tl_num, const int *tl_data, int tl_data_len );
+int ssproto_get_competition_stats_timeline_result_recv( conn_t _c, int competition_id, int team_id, int log_type, const int *tl_data, int tl_data_len );
 int ssproto_share_project_result_recv( conn_t _c, int project_id );
 int ssproto_publish_project_result_recv( conn_t _c, int project_id );
 int ssproto_search_shared_projects_result_recv( conn_t _c, int user_id, const int *project_ids, int project_ids_len );

@@ -97,7 +97,9 @@ If at all possible, it’s preferable to define this function first and not modi
 =define E_IMAGE_NOT_FOUND (-44) 			# Couldn’t find an image with the specified ID
 =define E_IMAGE_CANNOT_CONVERT (-45) 		# Couldn’t convert image into a PNG
 =define E_PROJECT_NOT_SHARED (-46) 			# The specified project hasn’t been shared
-=define E_CANT_EXTEND_LOCK (-47)       # Can't extend a lock.
+=define E_CANT_EXTEND_LOCK (-47)            # Can't extend a lock.
+=define E_DATA_NOT_FOUND (-48)              # can't find a data
+=define E_UNKNOWN (-99)                     # unknown reason
 ###########
 
 # Commands related to basic information
@@ -343,9 +345,11 @@ Get the value of an integer counter.
 =c2s 170 append_competition_log( int competition_id, int team_id, int user_id, int project_id, int log_type )
 Append one line of log in competition.
 Log is saved in binary format.
-=c2s 172 get_competition_stats_timeline( int competition_id, int team_id, int log_type, int tl_num )
-=s2c 173 get_competition_stats_timeline_result( int competition_id, int team_id, int log_type, int tl_num, int tl_data[1024])
+=c2s 172 get_competition_stats_timeline( int competition_id, int team_id, int log_type, int tl_num, uint start_at, uint end_at )
+=s2c 173 get_competition_stats_timeline_result( int competition_id, int team_id, int log_type, int tl_data[1024])
 Get timeline data for drawing a graph.
+
+tl_data: -1 for no data, 0~:valid data
 
 ##################
 # Project sharing (not every function call accesses storage)

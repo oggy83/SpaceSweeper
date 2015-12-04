@@ -2210,7 +2210,17 @@ int ssproto_append_competition_log_recv( conn_t _c, int competition_id, int team
     }
     return 0;
 }
-int ssproto_get_competition_stats_timeline_recv( conn_t _c, int competition_id, int team_id, int log_type, int tl_num ) {
+int ssproto_get_competition_stats_timeline_recv( conn_t _c, int competition_id, int team_id, int log_type, int tl_num, unsigned int start_at, unsigned int end_at ) {
+    print("ssproto_get_competition_stats_timeline_recv: comp:%d t:%d logt:%d tlnum:%d start:%u end:%u", competition_id, team_id, log_type, tl_num, start_at, end_at );
+    CompeStat *cs = getCompeStat( competition_id );
+    int out = SSPROTO_E_UNKNOWN;
+    if(!cs) out = SSPROTO_E_DATA_NOT_FOUND;
+    int *tl_data = (int*) MALLOC( tl_num * sizeof(int) );
+    for(int i=0;i<tl_num;i++) {
+        float rate = (float)i/(float)tl_num;
+        tl_data[i] = rate * 100;
+    }
+    ssproto_get_competition_stats_timeline_result_send( _c, competition_id, team_id, log_type, tl_data, tl_num );
 }
 
 

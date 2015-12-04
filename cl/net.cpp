@@ -2872,7 +2872,17 @@ int ssproto_counter_get_result_recv( conn_t _c, int counter_category, int counte
     return 0;
 }
 
-int ssproto_get_competition_stats_timeline_result_recv( conn_t _c, int competition_id, int team_id, int log_type, int tl_num, const int *tl_data, int tl_data_len ) {
+int ssproto_get_competition_stats_timeline_result_recv( conn_t _c, int competition_id, int team_id, int log_type, const int *tl_data, int tl_data_len ) {
+    print("ssproto_get_competition_stats_timeline_result_recv. comp:%d t:%d lt:%d tln:%d", competition_id, team_id, log_type, tl_data_len );
+    assert(tl_data_len == CompetitionStatusWindow::TIMELINE_IMG_WIDTH);
+    
+    for(int i=0;i<tl_data_len;i++) {
+        print(" %d", tl_data[i]);
+        int x = i, y = CompetitionStatusWindow::TIMELINE_IMG_HEIGHT - 1 - tl_data[i];
+        Color c = teamIdToColor(team_id);
+        g_compstatwin->timeline_img->setPixel(x,y,c);
+    }
+    g_compstatwin->timeline_tex->setImage(g_compstatwin->timeline_img);
 }
 
 
