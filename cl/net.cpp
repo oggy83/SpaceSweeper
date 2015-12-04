@@ -2872,6 +2872,9 @@ int ssproto_counter_get_result_recv( conn_t _c, int counter_category, int counte
     return 0;
 }
 
+int ssproto_get_competition_stats_timeline_result_recv( conn_t _c, int competition_id, int team_id, int log_type, int tl_num, const int *tl_data, int tl_data_len ) {
+}
+
 
 void dbSaveAllClearLog( int pjid, int accum_time_sec ) {
     Format fmt( "ZADD %s %d %d", g_all_clear_ranking_z_key, accum_time_sec, pjid );

@@ -131,6 +131,8 @@ typedef enum _SSPROTO_FUNCID{
   SSPROTO_C2S_KVS_LOAD_BIN=150,
   SSPROTO_C2S_COUNTER_ADD=160,
   SSPROTO_C2S_COUNTER_GET=161,
+  SSPROTO_C2S_APPEND_COMPETITION_LOG=170,
+  SSPROTO_C2S_GET_COMPETITION_STATS_TIMELINE=172,
   SSPROTO_C2S_SHARE_PROJECT=180,
   SSPROTO_C2S_PUBLISH_PROJECT=182,
   SSPROTO_C2S_UPDATE_PROJECT_ACTIVITY=184,
@@ -178,6 +180,7 @@ typedef enum _SSPROTO_FUNCID{
   SSPROTO_S2C_KVS_SAVE_BIN_RESULT=141,
   SSPROTO_S2C_KVS_LOAD_BIN_RESULT=151,
   SSPROTO_S2C_COUNTER_GET_RESULT=162,
+  SSPROTO_S2C_GET_COMPETITION_STATS_TIMELINE_RESULT=173,
   SSPROTO_S2C_SHARE_PROJECT_RESULT=181,
   SSPROTO_S2C_PUBLISH_PROJECT_RESULT=183,
   SSPROTO_S2C_SEARCH_SHARED_PROJECTS_RESULT=187,
@@ -244,6 +247,8 @@ double ssproto_get_kvs_save_bin_recv_count( void );
 double ssproto_get_kvs_load_bin_recv_count( void );
 double ssproto_get_counter_add_recv_count( void );
 double ssproto_get_counter_get_recv_count( void );
+double ssproto_get_append_competition_log_recv_count( void );
+double ssproto_get_get_competition_stats_timeline_recv_count( void );
 double ssproto_get_share_project_recv_count( void );
 double ssproto_get_publish_project_recv_count( void );
 double ssproto_get_update_project_activity_recv_count( void );
@@ -291,6 +296,7 @@ double ssproto_get_kvs_get_string_array_result_send_count( void );
 double ssproto_get_kvs_save_bin_result_send_count( void );
 double ssproto_get_kvs_load_bin_result_send_count( void );
 double ssproto_get_counter_get_result_send_count( void );
+double ssproto_get_get_competition_stats_timeline_result_send_count( void );
 double ssproto_get_share_project_result_send_count( void );
 double ssproto_get_publish_project_result_send_count( void );
 double ssproto_get_search_shared_projects_result_send_count( void );
@@ -335,6 +341,8 @@ void ssproto_kvs_save_bin_recv_debugprint(int on_off);
 void ssproto_kvs_load_bin_recv_debugprint(int on_off);
 void ssproto_counter_add_recv_debugprint(int on_off);
 void ssproto_counter_get_recv_debugprint(int on_off);
+void ssproto_append_competition_log_recv_debugprint(int on_off);
+void ssproto_get_competition_stats_timeline_recv_debugprint(int on_off);
 void ssproto_share_project_recv_debugprint(int on_off);
 void ssproto_publish_project_recv_debugprint(int on_off);
 void ssproto_update_project_activity_recv_debugprint(int on_off);
@@ -382,6 +390,7 @@ void ssproto_kvs_get_string_array_result_send_debugprint(int on_off);
 void ssproto_kvs_save_bin_result_send_debugprint(int on_off);
 void ssproto_kvs_load_bin_result_send_debugprint(int on_off);
 void ssproto_counter_get_result_send_debugprint(int on_off);
+void ssproto_get_competition_stats_timeline_result_send_debugprint(int on_off);
 void ssproto_share_project_result_send_debugprint(int on_off);
 void ssproto_publish_project_result_send_debugprint(int on_off);
 void ssproto_search_shared_projects_result_send_debugprint(int on_off);
@@ -426,6 +435,8 @@ int ssproto_kvs_save_bin_recv( conn_t _c, int query_id, const char *key, const c
 int ssproto_kvs_load_bin_recv( conn_t _c, int query_id, const char *key, const char *field );
 int ssproto_counter_add_recv( conn_t _c, int counter_category, int counter_id, int addvalue );
 int ssproto_counter_get_recv( conn_t _c, int counter_category, int counter_id );
+int ssproto_append_competition_log_recv( conn_t _c, int competition_id, int team_id, int user_id, int project_id, int log_type );
+int ssproto_get_competition_stats_timeline_recv( conn_t _c, int competition_id, int team_id, int log_type, int tl_num );
 int ssproto_share_project_recv( conn_t _c, int user_id, int project_id, const int *with, int with_len );
 int ssproto_publish_project_recv( conn_t _c, int user_id, int project_id );
 int ssproto_update_project_activity_recv( conn_t _c, int project_id );
@@ -476,6 +487,7 @@ int ssproto_kvs_get_string_array_result_send( conn_t _c, int query_id, int retco
 int ssproto_kvs_save_bin_result_send( conn_t _c, int query_id, int retcode, int valtype, const char *key, const char *field );
 int ssproto_kvs_load_bin_result_send( conn_t _c, int query_id, int retcode, int has_data, const char *key, const char *field, const char *data, int data_len );
 int ssproto_counter_get_result_send( conn_t _c, int counter_category, int counter_id, int result, int curvalue );
+int ssproto_get_competition_stats_timeline_result_send( conn_t _c, int competition_id, int team_id, int log_type, int tl_num, const int *tl_data, int tl_data_len );
 int ssproto_share_project_result_send( conn_t _c, int project_id );
 int ssproto_publish_project_result_send( conn_t _c, int project_id );
 int ssproto_search_shared_projects_result_send( conn_t _c, int user_id, const int *project_ids, int project_ids_len );

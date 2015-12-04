@@ -188,4 +188,6 @@ typedef enum {
 
 #define TEAMID_TO_TEAMINDEX(id) ((id)-1)
 
+#define TEAM_LOG_TYPE_GOT_MILESTONE 100
+
 #endif

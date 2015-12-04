@@ -36,6 +36,8 @@ static double ssproto_kvs_save_bin_recv_counter = 0;
 static double ssproto_kvs_load_bin_recv_counter = 0;
 static double ssproto_counter_add_recv_counter = 0;
 static double ssproto_counter_get_recv_counter = 0;
+static double ssproto_append_competition_log_recv_counter = 0;
+static double ssproto_get_competition_stats_timeline_recv_counter = 0;
 static double ssproto_share_project_recv_counter = 0;
 static double ssproto_publish_project_recv_counter = 0;
 static double ssproto_update_project_activity_recv_counter = 0;
@@ -83,6 +85,7 @@ static double ssproto_kvs_get_string_array_result_send_counter = 0;
 static double ssproto_kvs_save_bin_result_send_counter = 0;
 static double ssproto_kvs_load_bin_result_send_counter = 0;
 static double ssproto_counter_get_result_send_counter = 0;
+static double ssproto_get_competition_stats_timeline_result_send_counter = 0;
 static double ssproto_share_project_result_send_counter = 0;
 static double ssproto_publish_project_result_send_counter = 0;
 static double ssproto_search_shared_projects_result_send_counter = 0;
@@ -126,6 +129,8 @@ static int ssproto_kvs_save_bin_recv_debugout = 1;
 static int ssproto_kvs_load_bin_recv_debugout = 1;
 static int ssproto_counter_add_recv_debugout = 1;
 static int ssproto_counter_get_recv_debugout = 1;
+static int ssproto_append_competition_log_recv_debugout = 1;
+static int ssproto_get_competition_stats_timeline_recv_debugout = 1;
 static int ssproto_share_project_recv_debugout = 1;
 static int ssproto_publish_project_recv_debugout = 1;
 static int ssproto_update_project_activity_recv_debugout = 1;
@@ -173,6 +178,7 @@ static int ssproto_kvs_get_string_array_result_send_debugout = 1;
 static int ssproto_kvs_save_bin_result_send_debugout = 1;
 static int ssproto_kvs_load_bin_result_send_debugout = 1;
 static int ssproto_counter_get_result_send_debugout = 1;
+static int ssproto_get_competition_stats_timeline_result_send_debugout = 1;
 static int ssproto_share_project_result_send_debugout = 1;
 static int ssproto_publish_project_result_send_debugout = 1;
 static int ssproto_search_shared_projects_result_send_debugout = 1;
@@ -998,6 +1004,74 @@ int ssproto_sv_pcallback( conn_t _c, char *_data, int _len)
     }
 #endif
     _ret = ssproto_counter_get_recv( _c, counter_category,counter_id);
+    break;
+  }
+  case  SSPROTO_C2S_APPEND_COMPETITION_LOG :/* record length : 22 */
+  {
+    int competition_id;
+    int team_id;
+    int user_id;
+    int project_id;
+    int log_type;
+
+    /* protocol length check */
+    if(22<_len){
+      int _eret=ssproto_toolong_recv_warning(_c,170,_len);
+#ifdef GEN_DEBUG_LEN_PRINT
+      vce_errout("invalid length : recv%dbytes ssproto_append_competition_log_recv\n",_len);
+#endif
+      if(_eret<0)
+        return _eret;
+    }
+
+    _POP_I4(competition_id);
+    _POP_I4(team_id);
+    _POP_I4(user_id);
+    _POP_I4(project_id);
+    _POP_I4(log_type);
+
+    ssproto_append_competition_log_recv_counter += 1;
+#ifdef GEN_DEBUG_PRINT
+    if(ssproto_append_competition_log_recv_debugout)
+    {
+      char _addr[256];
+      vce_errout( "ssproto_append_competition_log_recv( [%s], competition_id=%d, team_id=%d, user_id=%d, project_id=%d, log_type=%d )\n", vce_conn_get_remote_addr_string( _c, _addr, sizeof(_addr) ) ,competition_id,team_id,user_id,project_id,log_type );
+    }
+#endif
+    _ret = ssproto_append_competition_log_recv( _c, competition_id,team_id,user_id,project_id,log_type);
+    break;
+  }
+  case  SSPROTO_C2S_GET_COMPETITION_STATS_TIMELINE :/* record length : 18 */
+  {
+    int competition_id;
+    int team_id;
+    int log_type;
+    int tl_num;
+
+    /* protocol length check */
+    if(18<_len){
+      int _eret=ssproto_toolong_recv_warning(_c,172,_len);
+#ifdef GEN_DEBUG_LEN_PRINT
+      vce_errout("invalid length : recv%dbytes ssproto_get_competition_stats_timeline_recv\n",_len);
+#endif
+      if(_eret<0)
+        return _eret;
+    }
+
+    _POP_I4(competition_id);
+    _POP_I4(team_id);
+    _POP_I4(log_type);
+    _POP_I4(tl_num);
+
+    ssproto_get_competition_stats_timeline_recv_counter += 1;
+#ifdef GEN_DEBUG_PRINT
+    if(ssproto_get_competition_stats_timeline_recv_debugout)
+    {
+      char _addr[256];
+      vce_errout( "ssproto_get_competition_stats_timeline_recv( [%s], competition_id=%d, team_id=%d, log_type=%d, tl_num=%d )\n", vce_conn_get_remote_addr_string( _c, _addr, sizeof(_addr) ) ,competition_id,team_id,log_type,tl_num );
+    }
+#endif
+    _ret = ssproto_get_competition_stats_timeline_recv( _c, competition_id,team_id,log_type,tl_num);
     break;
   }
   case  SSPROTO_C2S_SHARE_PROJECT :/* record length : 527 */
@@ -2431,6 +2505,38 @@ int ssproto_counter_get_result_send( conn_t _c, int counter_category, int counte
 #endif
 }
 /****/
+int ssproto_get_competition_stats_timeline_result_send( conn_t _c, int competition_id, int team_id, int log_type, int tl_num, const int *tl_data, int tl_data_len )
+{
+  /* Make bin_info array */
+  char _work[4119];
+  int _ofs = 0;
+  ssproto_get_competition_stats_timeline_result_send_counter += 1;
+  _PUSH_I2( SSPROTO_S2C_GET_COMPETITION_STATS_TIMELINE_RESULT, sizeof( _work));
+  _PUSH_I4(competition_id,sizeof(_work));
+  _PUSH_I4(team_id,sizeof(_work));
+  _PUSH_I4(log_type,sizeof(_work));
+  _PUSH_I4(tl_num,sizeof(_work));
+  _PUSH_IA4(tl_data,tl_data_len,1024,sizeof(_work));
+
+#ifdef GEN_DEBUG_PRINT
+  if(ssproto_get_competition_stats_timeline_result_send_debugout)
+  {
+    char _addr[256];
+    int _retsend;
+    vce_errout( "ssproto_get_competition_stats_timeline_result_send( [%s], competition_id=%d, team_id=%d, log_type=%d, tl_num=%d, tl_data[%d] )\n" , vce_conn_get_remote_addr_string( _c, _addr, sizeof(_addr) ) , competition_id, team_id, log_type, tl_num, tl_data_len );
+    _retsend=ssproto_sv_sender( _c, _work, _ofs);
+    if(_retsend<0){
+      vce_errout("protocol error : ssproto_get_competition_stats_timeline_result_send code : %d\n",_retsend);
+    }
+    return _retsend;
+  }
+  else
+    return ssproto_sv_sender( _c, _work, _ofs);
+#else
+  return ssproto_sv_sender( _c, _work, _ofs);
+#endif
+}
+/****/
 int ssproto_share_project_result_send( conn_t _c, int project_id )
 {
   /* Make bin_info array */
@@ -3119,6 +3225,14 @@ double ssproto_get_counter_get_recv_count( void )
 {
   return ssproto_counter_get_recv_counter;
 }
+double ssproto_get_append_competition_log_recv_count( void )
+{
+  return ssproto_append_competition_log_recv_counter;
+}
+double ssproto_get_get_competition_stats_timeline_recv_count( void )
+{
+  return ssproto_get_competition_stats_timeline_recv_counter;
+}
 double ssproto_get_share_project_recv_count( void )
 {
   return ssproto_share_project_recv_counter;
@@ -3307,6 +3421,10 @@ double ssproto_get_counter_get_result_send_count( void )
 {
   return ssproto_counter_get_result_send_counter;
 }
+double ssproto_get_get_competition_stats_timeline_result_send_count( void )
+{
+  return ssproto_get_competition_stats_timeline_result_send_counter;
+}
 double ssproto_get_share_project_result_send_count( void )
 {
   return ssproto_share_project_result_send_counter;
@@ -3472,6 +3590,14 @@ void ssproto_counter_add_recv_debugprint(int on_off)
 void ssproto_counter_get_recv_debugprint(int on_off)
 {
   ssproto_counter_get_recv_debugout=on_off;
+}
+void ssproto_append_competition_log_recv_debugprint(int on_off)
+{
+  ssproto_append_competition_log_recv_debugout=on_off;
+}
+void ssproto_get_competition_stats_timeline_recv_debugprint(int on_off)
+{
+  ssproto_get_competition_stats_timeline_recv_debugout=on_off;
 }
 void ssproto_share_project_recv_debugprint(int on_off)
 {
@@ -3661,6 +3787,10 @@ void ssproto_counter_get_result_send_debugprint(int on_off)
 {
   ssproto_counter_get_result_send_debugout=on_off;
 }
+void ssproto_get_competition_stats_timeline_result_send_debugprint(int on_off)
+{
+  ssproto_get_competition_stats_timeline_result_send_debugout=on_off;
+}
 void ssproto_share_project_result_send_debugprint(int on_off)
 {
   ssproto_share_project_result_send_debugout=on_off;
@@ -3744,7 +3874,7 @@ void ssproto_get_channel_member_count_result_send_debugprint(int on_off)
 #endif
 unsigned int ssproto_sv_get_version( unsigned int *subv )
 {
-  if(subv) *subv = 581194608;
+  if(subv) *subv = 559663586;
   return (unsigned int)10003;
 }
 conn_t ssproto_sv_get_current_conn( void )

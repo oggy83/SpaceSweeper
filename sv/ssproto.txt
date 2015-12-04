@@ -338,6 +338,15 @@ Data is saved in a small static file each time a counter’s value changes.
 Get the value of an integer counter.
 
 
+##############
+# Team Statistics (requires database)
+=c2s 170 append_competition_log( int competition_id, int team_id, int user_id, int project_id, int log_type )
+Append one line of log in competition.
+Log is saved in binary format.
+=c2s 172 get_competition_stats_timeline( int competition_id, int team_id, int log_type, int tl_num )
+=s2c 173 get_competition_stats_timeline_result( int competition_id, int team_id, int log_type, int tl_num, int tl_data[1024])
+Get timeline data for drawing a graph.
+
 ##################
 # Project sharing (not every function call accesses storage)
 

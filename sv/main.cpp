@@ -2105,6 +2105,104 @@ int ssproto_counter_get_recv( conn_t _c, int counter_category, int counter_id ) 
     return 0;
 }
 
+///////////////
+// Team competition logging
+
+class CompeLogEntry {
+public:
+    unsigned int timestamp; // time_t
+    int team_id;
+    int user_id;
+    int project_id;
+    int log_type;
+    CompeLogEntry( unsigned int ts, int team_id, int user_id, int project_id, int log_type ) : timestamp(ts), team_id(team_id), user_id(user_id), project_id(project_id), log_type(log_type) {}
+    CompeLogEntry() : timestamp(0), team_id(0), user_id(0), project_id(0), log_type(0) {}
+    void dump() {
+        print("%u,%d,%d,%d,%d", timestamp, team_id, user_id, project_id, log_type );
+    }
+};
+class CompeStat {
+public:
+    int competition_id;
+    static const int ENTRY_MAX = 32768;
+    CompeLogEntry entries[ENTRY_MAX];
+    int entries_used;
+    CompeStat( int compe_id ) : competition_id(compe_id), entries_used(0) {}
+    void appendEntry( CompeLogEntry *ent ) {
+        if(entries_used<ENTRY_MAX) {
+            entries[entries_used] = *ent;
+            entries_used++;
+            print("appendEntry: now count:%d",entries_used);
+            dump();
+        }
+    }
+    void dump() {
+        print("CompeStat::dump. competition_id:%d entries_used:%d", competition_id, entries_used );
+        for(int i=0;i<entries_used;i++) {
+            entries[i].dump();
+        }
+    }
+};
+
+CompeStat *g_compestats[8];
+CompeStat *getCompeStat(int compe_id) {
+    for(int i=0;i<elementof(g_compestats);i++) {
+        if(g_compestats[i] && g_compestats[i]->competition_id == compe_id ) {
+            return g_compestats[i];
+        }
+    }
+    return NULL;
+}
+CompeStat *allocCompeStat(int compe_id) {
+    for(int i=0;i<elementof(g_compestats);i++) {
+        if(g_compestats[i]==NULL){
+            g_compestats[i] = new CompeStat(compe_id);
+            return g_compestats[i];
+        }
+    }
+    return NULL;
+}
+// load from file if no stat on memory
+CompeStat *ensureCompeStat( int compe_id ) {
+    CompeStat *cs = getCompeStat(compe_id);
+    if(cs) return cs;
+
+    // not in memory, allocate new one
+    cs = allocCompeStat(compe_id);
+    if(!cs) {
+        print("allocCompeStat failed, compestat full! for:%d", compe_id );
+        return NULL;
+    }
+    
+    Format fmt( "_competition_stat_%d", compe_id );
+    char fullpath[256];
+    makeFullPath( fullpath, sizeof(fullpath), fmt.buf );
+    size_t rsz = sizeof(*cs);
+    bool ret = readFileWithLog( fullpath, (char*)cs, &rsz, 0 );
+    if(ret) {
+        print( "file (%s) exists with the size(%d)! read it in mem", fullpath, rsz );
+    } else {
+        print( "file (%s) doesn't exist", fullpath);
+    }
+    return cs;
+}
+
+int ssproto_append_competition_log_recv( conn_t _c, int competition_id, int team_id, int user_id, int project_id, int log_type ) {
+    print("ssproto_append_team_log_recv: compid:%d tid:%d uid:%d logt:%d", competition_id, team_id, user_id, log_type );
+    CompeStat *cs = ensureCompeStat(competition_id);
+    if(cs) {
+        time_t t = time(NULL);
+        CompeLogEntry ent(t,team_id, user_id, project_id, log_type );
+        cs->appendEntry(&ent);
+    }
+    return 0;
+}
+int ssproto_get_competition_stats_timeline_recv( conn_t _c, int competition_id, int team_id, int log_type, int tl_num ) {
+}
+
+
+////////////////
+
 void dumpNetstat() {
     tcpcontext_stat_t dbst, rtst;
     memset( &dbst, 0, sizeof(dbst) );

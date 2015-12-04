@@ -788,8 +788,15 @@ void GLFWCALL keyCallback( int key, int action ) {
         //if( g_enable_debug_menu ) for(int i=0;i<10;i++) new Shrimp( g_pc->loc + Vec2(100,100).randomize(50) );
         if( g_enable_debug_menu) {
             //new Girev( g_pc->loc + Vec2(100,100) );
-            for(int i=0;i<10;i++) new Takwashi(g_pc->loc + Vec2(100,100).randomize(200) );
+            //            for(int i=0;i<10;i++) new Takwashi(g_pc->loc + Vec2(100,100).randomize(200) );
             //            new Debris(  g_pc->loc + Vec2(100,100) , B_ATLAS_ITEM_BATTERY1 );
+            if( dbCheckCompetitionRunning() ) {
+                int compid = dbLoadCurrentCompetitionID();
+                int l = ssproto_append_competition_log_send( g_dbconn, compid, TEAMID_BLUE, g_user_id, g_current_project_id, TEAM_LOG_TYPE_GOT_MILESTONE );
+                print("append_team_log_send len:%d",l);
+            } else {
+                print("dbCheckCompetitionRunning false");
+            }
         }
 
         break;
