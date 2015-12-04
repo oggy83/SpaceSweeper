@@ -180,4 +180,12 @@ typedef enum {
     RESPAWN_RECALLED = 2,
 } RESPAWNMODE;
 
+typedef enum {
+    TEAMID_INVAL = 0,
+    TEAMID_RED = 1,
+    TEAMID_BLUE = 2,    
+} TEAMID;
+
+#define TEAMID_TO_TEAMINDEX(id) ((id)-1)
+
 #endif

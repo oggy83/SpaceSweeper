@@ -20,7 +20,7 @@
 
 
 
-PC::PC(Vec2 lc) : Char(CAT_PC, lc, g_base_deck, g_char_layer ), ItemOwner(PC_ITEM_NUM, 1), ideal_v(0,0), dir(DIR_DOWN), body_size(8), shoot_v(0,0), selected_item_index(PC_SUIT_NUM), last_charge_at(0), enable_ai(false), warping(false), warp_dir(DIR_NONE), knockback_until(0), knockback_v(0,0), enable_hpbar(false), enable_enebar(false), equip_prop(NULL), died_at(0), recalled_at(0), total_milestone_cleared(0), shoot_sound_index(0), last_network_update_at(0), energy_chain_heat_count(0), score(0), recovery_count_left(PC_RECOVERY_COUNT_MAX), nktb(NULL), last_insert_history_at(0) {
+PC::PC(Vec2 lc) : Char(CAT_PC, lc, g_base_deck, g_char_layer ), ItemOwner(PC_ITEM_NUM, 1), ideal_v(0,0), dir(DIR_DOWN), body_size(8), shoot_v(0,0), selected_item_index(PC_SUIT_NUM), last_charge_at(0), enable_ai(false), warping(false), warp_dir(DIR_NONE), knockback_until(0), knockback_v(0,0), enable_hpbar(false), enable_enebar(false), equip_prop(NULL), died_at(0), recalled_at(0), total_milestone_cleared(0), shoot_sound_index(0), last_network_update_at(0), energy_chain_heat_count(0), score(0), recovery_count_left(PC_RECOVERY_COUNT_MAX), nktb(NULL), last_insert_history_at(0), team_id(TEAMID_INVAL) {
     tex_epsilon=0;
     priority = PRIO_CHAR;
 
@@ -920,8 +920,9 @@ void PC::dump( PCDump *out ) {
     out->score = score;
     out->recovery_count_left = recovery_count_left;
     out->last_recovery_at_sec = last_recovery_at_sec;
-    print("pc::dump: ssi:%d hbi:%d fbi:%d bbi:%d beambi:%d totms:%d nick:'%s'",
-          shoot_sound_index, hair_base_index, face_base_index, body_base_index, beam_base_index, total_milestone_cleared, nickname );    
+    out->team_id = team_id;
+    print("pc::dump: ssi:%d hbi:%d fbi:%d bbi:%d beambi:%d totms:%d nick:'%s' team:%d",
+          shoot_sound_index, hair_base_index, face_base_index, body_base_index, beam_base_index, total_milestone_cleared, nickname, team_id );    
 }
 void PC::applyPCDump( PCDump *in ) {
     shoot_sound_index = in->shoot_sound_index;
@@ -946,10 +947,12 @@ void PC::applyPCDump( PCDump *in ) {
     recovery_count_left = in->recovery_count_left;
     last_recovery_at_sec = in->last_recovery_at_sec;
     for(int i=0;i<elementof(nickname);i++ ) nickname[i] = in->nickname[i];
+    team_id = in->team_id;
+    
     onStatusUpdated();
     onItemUpdated(-1);
-    print("applyPCDump: ssi:%d hbi:%d fbi:%d bbi:%d beambi:%d totms:%d nick:'%s' score:%lld",
-          shoot_sound_index, hair_base_index, face_base_index, body_base_index, beam_base_index, total_milestone_cleared, nickname, score );
+    print("applyPCDump: ssi:%d hbi:%d fbi:%d bbi:%d beambi:%d totms:%d nick:'%s' score:%lld team:%d",
+          shoot_sound_index, hair_base_index, face_base_index, body_base_index, beam_base_index, total_milestone_cleared, nickname, score, team_id );
 }
 
 void PC::setNickname( const char *s ) {

@@ -236,4 +236,10 @@ extern bool g_enable_nearcast_log;
 void setTitleScreenVisible( bool imgvis, bool logovis );
 void setWarnLine( Color c, const char *s ) ;
 
+Color teamIdToColor(int id);
+Color teamIndexToColor(int ind);
+char *teamIdToName(int id);
+char *teamIndexToName(int ind);
+
+
 #endif

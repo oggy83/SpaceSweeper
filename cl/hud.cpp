@@ -877,6 +877,23 @@ void CharGridTextBox::copy( CharGridTextBox *from ) {
         cg->setColor(x,0, from->cg->getColor(x,0) );
     }
 }
+void CharGridTextBox::replaceStringColor( const char *s, Color c ) {
+    int l = strlen(s);
+    for(int i=0;i<cg->width;i++) {
+        bool complete = true;
+        for(int j=0;j<l;j++) {
+            if( i+j >= cg->width ) complete = false;
+            int ind = cg->get(i+j,0);
+            if(ind != (int)s[j]) complete = false;
+        }
+        if(complete) {
+            for(int j=0;j<l;j++) {
+                cg->setColor(i+j,0,c);
+            }
+            break;
+        }
+    }
+}
 
 ////////////////////////
 CraftOption::CraftOption( ItemConf *itc, Vec2 lc, CRAFTOPTMODE mode, Layer *l ) : ItemPanel(false), itc(itc), mode(mode) {
@@ -4835,14 +4852,6 @@ void SeedInputWindow::selectAtCursor() {
     
 }
 ///////////////////////////
-Color teamIndexToColor(int ind) {
-    switch(ind) {
-    case 0: return RED;
-    case 1: return BLUE;
-    default: assert(false);
-    }
-    return WHITE;
-}
 CompetitionStatusWindow::CompetitionStatusWindow() : Window(PREPARATION_GRID_WIDTH, PREPARATION_GRID_HEIGHT, B_ATLAS_WINDOW_FRAME_BASE, WINDOW_ALPHA ) {
     g_hud_layer->insertProp(this);
     setLoc(PREPARATION_WINDOW_LOC);
@@ -4871,19 +4880,19 @@ CompetitionStatusWindow::CompetitionStatusWindow() : Window(PREPARATION_GRID_WID
     team_icons[1]->setScl(64);    
     g_hud_layer->insertProp(team_icons[1]);
 
-    options[0] = new CharGridTextBox(12);
-    options[0]->setString( teamIndexToColor(0), "JOIN RED" );
+    options[0] = new CharGridTextBox(16);
+    options[0]->setString( WHITE, "NOT SET" );
     options[0]->setLoc( title_tb->loc + Vec2(150,-550) );
     g_hud_layer->insertProp(options[0]);
     group->reg(options[0]);
-    options[1] = new CharGridTextBox(12);
-    options[1]->setString( teamIndexToColor(1), "JOIN BLUE" );
+    options[1] = new CharGridTextBox(16);
+    options[1]->setString( WHITE, "NOT SET" );
     options[1]->setLoc( title_tb->loc + Vec2(460,-550) );
     g_hud_layer->insertProp(options[1]);
     group->reg(options[1]);
     options[2] = new CharGridTextBox(12);
     options[2]->setString( WHITE, "BACK" );
-    options[2]->setLoc( title_tb->loc + Vec2(660,-550) );    
+    options[2]->setLoc( title_tb->loc + Vec2(700,-550) );    
     g_hud_layer->insertProp(options[2]);    
     group->reg(options[2]);    
     
@@ -4944,6 +4953,7 @@ void CompetitionStatusWindow::toggle(bool vis) {
     for(int i=0;i<TEAM_NUM+1;i++) options[i]->setVisible(vis);    
     cursor->setVisible(vis);
     timeline->setVisible(vis);
+    if(vis)update();
 }
 void CompetitionStatusWindow::update() {
     print("CompetitionStatusWindow::update: curid:%d", cursor_id_at );
@@ -4951,6 +4961,14 @@ void CompetitionStatusWindow::update() {
     if(curp) cursor->loc = curp->loc + Vec2(-24,0);
 
     updateTimelineImage();
+    print("CompetitionStatusWindow::update: pc's team_id:%d", g_pc->team_id );
+    if( g_pc->team_id == TEAMID_INVAL ) {
+        options[0]->setString( teamIndexToColor(0), "JOIN RED" );
+        options[1]->setString( teamIndexToColor(1), "JOIN BLUE" );
+    } else {
+        options[0]->setString( teamIndexToColor(0), "RED PROJECTS" );
+        options[1]->setString( teamIndexToColor(1), "BLUE PROJECTS" );
+    }
 }
 void CompetitionStatusWindow::updateTimelineImage() {
     for(int y=0;y<TIMELINE_IMG_HEIGHT;y++) {
@@ -4968,17 +4986,48 @@ void CompetitionStatusWindow::moveCursor( DIR dir ) {
     cursor_id_at = nextp->id;
     update();
 }
-void CompetitionStatusWindow::selectAtCursor() {
-    Prop2D *tgtp = group->find( cursor_id_at );
-    for(int i=0;i<elementof(options);i++){
-        if( tgtp == options[i] ) {
-            CharGridTextBox *tb = options[i];
-            if( tb->isEqual("BACK",4) ) {
-                hide();
-                g_projtypewin->show();
-            } else if( i == 0 ) {
-            } else if( i == 1 ) {
-            }
-        }
+void join_team_confirm_callback( bool positive ) {
+    print("join_team_confirm_callback: %d",positive);
+    if(positive) {
+        g_compstatwin->onConfirmJoin();
+        g_compstatwin->update();
     }
 }
+void hudShowConfirmJoinTeamMessage( int teamind ) {
+    g_windowopen_sound->play();
+    g_msgwin->clear();
+    Format msg( "ARE YOU SURE TO JOIN %s ?", teamIndexToName(teamind) );
+    g_msgwin->writeLine( WHITE, msg.buf );
+    g_msgwin->setWithCancel(true);
+    g_msgwin->setCloseCallback( join_team_confirm_callback );
+    g_msgwin->show();
+    g_msgwin->toggleDelay(true);
+}
+void CompetitionStatusWindow::selectAtCursor() {
+    Prop2D *tgtp = group->find( cursor_id_at );
+    CharGridTextBox *tb = (CharGridTextBox*) tgtp;
+    if( tb->isEqual("BACK",4) ) {
+        hide();
+        g_projtypewin->show();
+    } else if( tb->isEqual("JOIN RED",8) ) {
+        hudShowConfirmJoinTeamMessage(0);
+    } else if( tb->isEqual("JOIN BLUE",9) ) {
+        hudShowConfirmJoinTeamMessage(1);                
+    }
+}
+void CompetitionStatusWindow::onConfirmJoin() {
+    Prop2D *tgtp = group->find( cursor_id_at );
+    CharGridTextBox *tb = (CharGridTextBox*) tgtp;
+    if( tb->isEqual( "JOIN RED",8) ) {
+        assert( g_pc->team_id == TEAMID_INVAL );
+        g_pc->team_id = TEAMID_RED;
+        print("Joining red!");
+    } else if( tb->isEqual( "JOIN BLUE", 9 ) ) {
+        assert( g_pc->team_id == TEAMID_INVAL );
+        g_pc->team_id = TEAMID_BLUE;
+        print("joining blue!" );
+    }
+    dbSavePC();
+    updateNickTB();
+}
+

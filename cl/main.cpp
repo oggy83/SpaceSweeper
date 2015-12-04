@@ -246,6 +246,24 @@ int g_save_max_concurrent = 128; // 128 for SSDs.
 
 ////////////////////////////////////
 
+Color teamIdToColor(int id) { return teamIndexToColor(TEAMID_TO_TEAMINDEX(id)); }
+Color teamIndexToColor(int ind) {
+    switch(ind) {
+    case 0: return RED;
+    case 1: return BLUE;
+    default: return WHITE;
+    }
+    return WHITE;
+}
+char *teamIdToName(int id) { return teamIndexToName(TEAMID_TO_TEAMINDEX(id)); }
+char *teamIndexToName(int ind) {
+    switch(ind) {
+    case 0: return (char*) "RED";
+    case 1: return (char*) "BLUE";
+    default: return (char*) "NONE";
+    }
+    return NULL;
+}
 void setWarnLine( Color c, const char *s ) {
     if(g_warnline) {
         g_warnline->setVisible(true);
@@ -317,11 +335,14 @@ void updateNickTB() {
     if( g_pc && g_pc->nickname[0]) {
         char numstr[32];
         commaInteger( numstr, sizeof(numstr), g_pc->score );
-        Format fmt( "PLAYER:%s SP:%s", g_pc->nickname, numstr );
+        Format fmt( "PLAYER:%s TEAM:%s SP:%s", g_pc->nickname, teamIdToName(g_pc->team_id), numstr );
         char s[32];
         copyToRight(s, sizeof(s), fmt.buf );
         g_nicktb->setString(WHITE, s );
         g_nicktb->setColor( Color(1,1,1,0.5) );
+        if(g_pc->team_id != TEAMID_INVAL ) {
+            g_nicktb->replaceStringColor( teamIdToName(g_pc->team_id), teamIdToColor(g_pc->team_id) );
+        }
     } else {
         g_nicktb->setString(WHITE, "");
     }

@@ -15,6 +15,7 @@ public:
     void fillBG( int ind );
     void setColor(Color c) { cg->fillColor(c); }
     void copy( CharGridTextBox *tb );
+    void replaceStringColor( const char *s, Color c );
 };
 
 // One line input.
@@ -810,6 +811,7 @@ public:
     void update();
     void updateTimelineImage();
     void appendLog( int teamind, const char *msg );
+    void onConfirmJoin();
 };
 
 /////////////

@@ -20,6 +20,7 @@ public:
     long long score;
     int recovery_count_left;
     unsigned int last_recovery_at_sec;
+    int team_id; // team index starts with 0,but id starts with 1
     PCDump() {}
 };
 
@@ -87,6 +88,8 @@ public:
 
     CharGridTextBox *nktb;
     double last_insert_history_at;
+
+    int team_id;
     
     PC( Vec2 lc );
     virtual bool charPoll( double dt );
