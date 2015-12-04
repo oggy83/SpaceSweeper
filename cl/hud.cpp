@@ -869,6 +869,14 @@ bool CharGridTextBox::isEqual( const char *s, int l ) {
     }
     return true;
 }
+void CharGridTextBox::copy( CharGridTextBox *from ) {
+    for(int x=0;x<bg->width && x < from->bg->width; x++) {
+        bg->set(x,0, from->bg->get(x,0) );
+        cg->set(x,0, from->cg->get(x,0) );
+        bg->setColor(x,0, from->bg->getColor(x,0) );
+        cg->setColor(x,0, from->cg->getColor(x,0) );
+    }
+}
 
 ////////////////////////
 CraftOption::CraftOption( ItemConf *itc, Vec2 lc, CRAFTOPTMODE mode, Layer *l ) : ItemPanel(false), itc(itc), mode(mode) {
@@ -4827,7 +4835,14 @@ void SeedInputWindow::selectAtCursor() {
     
 }
 ///////////////////////////
-
+Color teamIndexToColor(int ind) {
+    switch(ind) {
+    case 0: return RED;
+    case 1: return BLUE;
+    default: assert(false);
+    }
+    return WHITE;
+}
 CompetitionStatusWindow::CompetitionStatusWindow() : Window(PREPARATION_GRID_WIDTH, PREPARATION_GRID_HEIGHT, B_ATLAS_WINDOW_FRAME_BASE, WINDOW_ALPHA ) {
     g_hud_layer->insertProp(this);
     setLoc(PREPARATION_WINDOW_LOC);
@@ -4840,62 +4855,112 @@ CompetitionStatusWindow::CompetitionStatusWindow() : Window(PREPARATION_GRID_WID
 
     assert(TEAM_NUM==2);
 
-    float leftmgn = 150, topmgn = -150;
+    float leftmgn = 150, topmgn = -100;
     team_icons[0] = new PictLabel( title_tb->loc + Vec2(leftmgn,topmgn), B_ATLAS_RED_TEAM_ICON );
     team_icons[0]->setString("811");
-    team_icons[0]->setStringColor(RED);
+    team_icons[0]->setStringColor(teamIndexToColor(0));
     team_icons[0]->setStringScl(32);
     team_icons[0]->setScl(64);
     g_hud_layer->insertProp(team_icons[0]);
-    group->reg(team_icons[0]);
     
-    float teammgn = 450;
+    float teammgn = 340;
     team_icons[1] = new PictLabel( title_tb->loc + Vec2(leftmgn+teammgn,topmgn), B_ATLAS_BLUE_TEAM_ICON );
     team_icons[1]->setString("780");
-    team_icons[1]->setStringColor(BLUE);
+    team_icons[1]->setStringColor(teamIndexToColor(1));
     team_icons[1]->setStringScl(32);
     team_icons[1]->setScl(64);    
     g_hud_layer->insertProp(team_icons[1]);
-    group->reg(team_icons[1]);
 
-    cancel_tb = new CharGridTextBox(8);
-    g_hud_layer->insertProp(cancel_tb);
-    cancel_tb->setLoc( title_tb->loc + Vec2(700,-550) );
-    cancel_tb->setString( WHITE, "CANCEL" );
-    group->reg(cancel_tb);
+    options[0] = new CharGridTextBox(12);
+    options[0]->setString( teamIndexToColor(0), "JOIN RED" );
+    options[0]->setLoc( title_tb->loc + Vec2(150,-550) );
+    g_hud_layer->insertProp(options[0]);
+    group->reg(options[0]);
+    options[1] = new CharGridTextBox(12);
+    options[1]->setString( teamIndexToColor(1), "JOIN BLUE" );
+    options[1]->setLoc( title_tb->loc + Vec2(460,-550) );
+    g_hud_layer->insertProp(options[1]);
+    group->reg(options[1]);
+    options[2] = new CharGridTextBox(12);
+    options[2]->setString( WHITE, "BACK" );
+    options[2]->setLoc( title_tb->loc + Vec2(660,-550) );    
+    g_hud_layer->insertProp(options[2]);    
+    group->reg(options[2]);    
     
     cursor = new BlinkCursor( DIR_RIGHT);
     g_hud_layer->insertProp(cursor);
 
-    cursor_id_at = team_icons[0]->id;
-    
-    /*
-    PictLabel *membernums[TEAM_NUM];
-    static const int NEWMEMBER_LOG_NUM = 5;
-    PictLabel *newmembers[TEAM_NUM][NEWMEMBER_LOG_NUM];
-    CharGridTextBox *cancel_tb;
-    PropGroup *group;
-    
-    BlinkCursor *cursor;
-    CompetitionStatusWindow();
+    cursor_id_at = options[0]->id;
 
-    */
+    timeline_img = new Image();
+    timeline_img->setSize(TIMELINE_IMG_WIDTH, TIMELINE_IMG_HEIGHT);
+    timeline_tex = new Texture();
+    timeline_tex->setImage(timeline_img);
+    timeline = new Prop2D();
+    timeline->setTexture(timeline_tex);
+    timeline->setScl(TIMELINE_IMG_WIDTH,TIMELINE_IMG_HEIGHT);
+    timeline->setLoc(title_tb->loc + Vec2(420,-250) );
+    g_hud_layer->insertProp(timeline);
 
+    for(int i=0;i<TEAM_NUM;i++) {
+        for(int j=0;j<LOG_NUM;j++) {
+            CharGridTextBox *tb = new CharGridTextBox(24);
+            tb->setLoc( title_tb->loc + Vec2(160+i*300,-400-j*16));
+            tb->setColor( teamIndexToColor(i));
+            tb->setScl(12);
+            logs[i][j] = tb;
+            g_hud_layer->insertProp(tb);
+        }
+    }
+    
+    
+    appendLog( 0, "POOO0" );
+    appendLog( 0, "HOGEHOGE0");
+    appendLog( 1, "GAAA" );
+    appendLog( 1, "GEEEE" );
+    appendLog( 1, "Zzzzzzzzzzz" );
+    appendLog( 1, "kekkkekek");
+    appendLog( 1, "aksdjfkasjdhf" );
+    appendLog( 1, "&&&&&&&&&&" );
+    
     update();
+}
+// logs[0] goes top, logs[N-1] at bottom
+void CompetitionStatusWindow::appendLog( int teamind, const char *msg ) {
+    // shift one line first and insert at the top
+    for(int i=LOG_NUM-1;i>=1;i--) {
+        logs[teamind][i]->copy( logs[teamind][i-1] );
+    }
+    
+    logs[teamind][0]->setString( teamIndexToColor(teamind), msg );
 }
 void CompetitionStatusWindow::toggle(bool vis) {
     setVisible(vis);
     title_tb->setVisible(vis);
     for(int i=0;i<TEAM_NUM;i++) {
         team_icons[i]->setVisible(vis);
+        for(int j=0;j<LOG_NUM;j++) logs[i][j]->setVisible(vis);
     }
-    cancel_tb->setVisible(vis);
+    for(int i=0;i<TEAM_NUM+1;i++) options[i]->setVisible(vis);    
     cursor->setVisible(vis);
+    timeline->setVisible(vis);
 }
 void CompetitionStatusWindow::update() {
     print("CompetitionStatusWindow::update: curid:%d", cursor_id_at );
     Prop2D *curp = group->find( cursor_id_at );
-    if(curp) cursor->loc = curp->loc + Vec2(-48,0);
+    if(curp) cursor->loc = curp->loc + Vec2(-24,0);
+
+    updateTimelineImage();
+}
+void CompetitionStatusWindow::updateTimelineImage() {
+    for(int y=0;y<TIMELINE_IMG_HEIGHT;y++) {
+        for(int x=0;x<TIMELINE_IMG_WIDTH;x++) {
+            Color c = RED;
+            if(y==x) c = WHITE;
+            timeline_img->setPixel(x,y,c);
+        }
+    }
+    timeline_tex->setImage(timeline_img);
 }
 void CompetitionStatusWindow::moveCursor( DIR dir ) {
     g_cursormove_sound->play();
@@ -4905,8 +4970,15 @@ void CompetitionStatusWindow::moveCursor( DIR dir ) {
 }
 void CompetitionStatusWindow::selectAtCursor() {
     Prop2D *tgtp = group->find( cursor_id_at );
-    if( tgtp == cancel_tb ) {
-        hide();
-        g_projtypewin->show();
+    for(int i=0;i<elementof(options);i++){
+        if( tgtp == options[i] ) {
+            CharGridTextBox *tb = options[i];
+            if( tb->isEqual("BACK",4) ) {
+                hide();
+                g_projtypewin->show();
+            } else if( i == 0 ) {
+            } else if( i == 1 ) {
+            }
+        }
     }
 }

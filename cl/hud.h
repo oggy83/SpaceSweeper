@@ -14,6 +14,7 @@ public:
     void clear() { cg->clear(); }
     void fillBG( int ind );
     void setColor(Color c) { cg->fillColor(c); }
+    void copy( CharGridTextBox *tb );
 };
 
 // One line input.
@@ -787,13 +788,19 @@ public:
     static const int TEAM_NUM = 2;
     PictLabel *team_icons[TEAM_NUM];
     PictLabel *membernums[TEAM_NUM];
-    static const int NEWMEMBER_LOG_NUM = 5;
-    PictLabel *newmembers[TEAM_NUM][NEWMEMBER_LOG_NUM];
-    CharGridTextBox *cancel_tb;
+    static const int LOG_NUM = 8;
+    CharGridTextBox *logs[TEAM_NUM][LOG_NUM];
+    CharGridTextBox *options[TEAM_NUM+1]; // +1 for cancel
     PropGroup *group;
 
     int cursor_id_at;
     BlinkCursor *cursor;
+
+    static const int TIMELINE_IMG_WIDTH = 600, TIMELINE_IMG_HEIGHT = 200;
+    Image *timeline_img;
+    Texture *timeline_tex;
+    Prop2D *timeline;
+    
     CompetitionStatusWindow();
     void hide() { toggle(false); }
     void show() { toggle(true); }
@@ -801,7 +808,8 @@ public:
     void selectAtCursor();
     void moveCursor( DIR dir );
     void update();
-    
+    void updateTimelineImage();
+    void appendLog( int teamind, const char *msg );
 };
 
 /////////////
