@@ -803,7 +803,8 @@ void GLFWCALL keyCallback( int key, int action ) {
             //            new Debris(  g_pc->loc + Vec2(100,100) , B_ATLAS_ITEM_BATTERY1 );
             if( dbCheckCompetitionRunning() ) {
                 int compid = dbLoadCurrentCompetitionID();
-                int l = ssproto_append_competition_log_send( g_dbconn, compid, TEAMID_BLUE, g_user_id, g_current_project_id, TEAM_LOG_TYPE_GOT_MILESTONE );
+                int tid = range(0,1)< 0.5 ? TEAMID_BLUE : TEAMID_RED;                
+                int l = ssproto_append_competition_log_send( g_dbconn, compid, tid, g_user_id, g_current_project_id, TEAM_LOG_TYPE_GOT_MILESTONE );
                 print("append_team_log_send len:%d",l);
             } else {
                 print("dbCheckCompetitionRunning false");
