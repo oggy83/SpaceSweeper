@@ -30,7 +30,9 @@ You can build it on MacOS, Linux. Use make command in vce directory,
 and after that make again in sv directory.
 
 ### 5. Start backend server
-Server program is placed at sv/ssv, and you'll start it with these command line options:
+Server program is placed at sv/ssv.
+First you have to make data directories in sv/datadir by "ruby mkdir.rb" in the directory.
+Then you'll start it with these command line options:
 
 ~~~
 ./ssv realtime database --maxcon=10
