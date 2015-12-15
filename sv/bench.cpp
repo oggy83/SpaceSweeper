@@ -400,4 +400,4 @@ int ssproto_channelcast_notify_recv( conn_t _c, int channel_id, int sender_cli_i
 int ssproto_leave_channel_result_recv( conn_t _c, int retcode ) {return 0;}
 int ssproto_lock_keep_grid_result_recv( conn_t _c, int grid_id, int x, int y, int retcode ) { return 0; }
 int ssproto_lock_keep_project_result_recv( conn_t _c, int project_id, int category, int retcode ) { return 0; }
-int ssproto_get_competition_stats_timeline_result_recv( conn_t _c, int competition_id, int team_id, int log_type, int tl_num, const int *tl_data, int tl_data_len ) {return 0;}
+int ssproto_get_competition_stats_timeline_result_recv( conn_t _c, int competition_id, int team_id, int log_type, const int *tl_data, int tl_data_len ) {return 0;}
