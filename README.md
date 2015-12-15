@@ -7,6 +7,6 @@ For English document, please see [SpaceSweeper.en.md](docs/SpaceSweeper.en.md) .
 ## License
 
 Space Sweeper is based on the CCDK software.
-License of CCDK is applied to Space Sweeper. Please see [LICNSE](LICNSE) .
+License of CCDK is applied to Space Sweeper. Please see [LICENSE](LICENSE) .
 
 
